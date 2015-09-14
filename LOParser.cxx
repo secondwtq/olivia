@@ -310,21 +310,25 @@ std::shared_ptr<AST::NodePrimaryExpression> LOParser::parse_expression_primary(
         case TTrue: {
             auto ret = std::make_shared<AST::NodeConstantBoolean>(parent);
             ret->value = true;
+            lex();
             return ret;
         }
         case TFalse: {
             auto ret = std::make_shared<AST::NodeConstantBoolean>(parent);
             ret->value = false;
+            lex();
             return ret;
         }
         case TInteger: {
             auto ret = std::make_shared<AST::NodeConstantInteger>(parent);
             ret->value = lexer->cache_integer;
+            lex();
             return ret;
         }
         case TFloat: {
             auto ret = std::make_shared<AST::NodeConstantDouble>(parent);
             ret->value = lexer->cache_float;
+            lex();
             return ret;
         }
     }
@@ -422,7 +426,7 @@ void LOParser::init_token_predmap() {
 std::shared_ptr<AST::NodeStatementExpression> LOParser::parse_expression_statement(
         std::shared_ptr<AST::Node> parent) {
     auto ret = std::make_shared<AST::NodeStatementExpression>(parent);
-    auto e = parse_expression(parent);
+    auto e = parse_expression(ret);
     ret->expression = e;
     expect(';');
     return ret;

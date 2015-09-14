@@ -17,6 +17,8 @@ const unsigned char testcode[] = ""
 "   var t : test; "
 "   function main(argc : int32, argv : string) : int32 {"
 "       var t1 : test; "
+"       var t2 : double;"
+        "t2 = 1.0 + 2.0;"
 "   }"
 "";
 

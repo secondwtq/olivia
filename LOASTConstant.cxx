@@ -21,15 +21,13 @@ void NodeConstantBoolean::dump() {
 
 void NodeConstantDouble::dump() {
     std::string ret = "Expression - Constant - Double - <";
-    ret += value;
-    ret += ">";
+    ret += std::to_string(value) + ">";
     dump_output(ret);
 }
 
 void NodeConstantInteger::dump() {
     std::string ret = "Expression - Constant - Integer - <";
-    ret += value;
-    ret += ">";
+    ret += std::to_string(value) + ">";
     dump_output(ret);
 }
 
