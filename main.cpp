@@ -2,6 +2,7 @@
 #include "LOLexer.hxx"
 #include "LOParser.hxx"
 #include "LOScript.hxx"
+#include "LOLModule.hxx"
 
 #include <memory>
 
@@ -13,13 +14,18 @@ const unsigned char testcode[] = ""
 "}"
 ""
 "extern function putchar(c : int32) : void;"
+"extern function fabs(arg : double) : double;"
 ""
-"   var t : test; "
-"   function main(argc : int32, argv : string) : int32 {"
-"       var t1 : test; "
-"       var t2 : double;"
-        "t2 = 1.0 + 2.0;"
+"   function main($a? : int32) : int32 {"
+        "var t : double;"
+        "putchar(233);"
+        "fabs(t);"
+        "return fabs(t);"
 "   }"
+        ""
+        "function t() : int32 {"
+            "main(1);"
+        "}"
 "";
 
 int main() {
@@ -32,6 +38,7 @@ int main() {
     parser.lex();
     std::shared_ptr<AST::NodeScript> root = std::make_shared<AST::NodeScript>();
     std::shared_ptr<LOScript> script = std::make_shared<LOScript>();
+    std::shared_ptr<LOLModule> module = std::make_shared<LOLModule>("module_test", script);
 
     while (!lexer.reached_eof) {
         printf("parsing ...\n");
@@ -42,10 +49,24 @@ int main() {
             case AST::NDeclarationClass:
                 script->addClass(t);
                 break;
+            case AST::NDeclarationFunction:
+                script->addGlobalFunction(std::static_pointer_cast<AST::NodeDeclarationFunction>(t));
+                break;
+            case AST::NDeclarationExternFunction:
+                script->addExternFunction(std::static_pointer_cast<AST::NodeDeclarationExternFunction>(t));
+                break;
             case AST::NDeclarationVar:
                 break;
             default:
                 break;
+        }
+
+        auto ir = t->generate_code(module.get());
+        if (ir) {
+            printf("Generated code:\n");
+            ir->dump();
+        } else {
+            printf("generation not defined!\n");
         }
     }
     script->finishupDeclarations();

@@ -32,6 +32,8 @@ public:
     std::shared_ptr<AST::NodeDeclarationClassElement> parse_class_element(std::shared_ptr<AST::Node> parent);
     std::vector<std::shared_ptr<AST::NodeDeclarationClassElement>> parse_class_elements(std::shared_ptr<AST::Node> parent);
 
+    std::shared_ptr<AST::NodeStatementReturn> parse_return_statement(std::shared_ptr<AST::Node> parent);
+
     std::shared_ptr<AST::NodeStatementVar> parse_var_statement(std::shared_ptr<AST::Node> parent);
     std::shared_ptr<AST::MiscVarDeclarationList> parse_var_decllist(std::shared_ptr<AST::Node> parent);
     std::shared_ptr<AST::NodeDeclarationVar> parse_var_declaration(std::shared_ptr<AST::Node> parent);
@@ -39,7 +41,8 @@ public:
 
     std::shared_ptr<AST::NodeDeclarationFunction> parse_function_declaration(std::shared_ptr<AST::Node> parent);
     std::shared_ptr<AST::NodeDeclarationExternFunction> parse_function_extern_declaration(std::shared_ptr<AST::Node> parent);
-    std::shared_ptr<AST::NodeDeclarationSignature> parse_function_signature(std::shared_ptr<AST::Node> parent);
+    std::shared_ptr<AST::NodeDeclarationSignature> parse_function_signature(
+            std::shared_ptr<AST::Node> parent, const std::string& name);
     std::shared_ptr<AST::NodeBlock> parse_block(std::shared_ptr<AST::Node> parent);
 
     std::shared_ptr<AST::NodeExpression> parse_expression(std::shared_ptr<AST::Node> parent);

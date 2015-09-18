@@ -8,6 +8,7 @@
 //
 
 #include "LOAST.hxx"
+#include "LOASTVisitor.hxx"
 
 namespace Olivia {
 namespace AST {
@@ -189,6 +190,16 @@ void NodeStatementExpression::dump() {
     dump_output("Statement - Expression");
     if (expression) {
         expression->dump(); }
+}
+
+void NodeStatementReturn::dump() {
+    dump_output("Statement - 'return'");
+    if (expression) {
+        expression->dump(); }
+}
+
+void Node::accept(LOASTVisitor *visitor) {
+
 }
 
 }

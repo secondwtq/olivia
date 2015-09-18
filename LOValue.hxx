@@ -29,6 +29,7 @@ enum LOValueType {
     TypeUndefined,
     TypeNull,
     TypeString,
+    TypeRawString,
     TypeObject
 };
 

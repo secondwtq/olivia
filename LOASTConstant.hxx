@@ -28,6 +28,7 @@ public:
     NodeKind kind() override {
         return NConstantBoolean; }
     void dump() override;
+    llvm::Value *generate_code(LOLModule *module) override;
     bool value;
 };
 
@@ -38,6 +39,7 @@ public:
     NodeKind kind() override {
         return NConstantDouble; }
     void dump() override;
+    llvm::Value *generate_code(LOLModule *module) override;
     double value;
 };
 
@@ -48,6 +50,7 @@ public:
     NodeKind kind() override {
         return NConstantInteger; }
     void dump() override;
+    llvm::Value *generate_code(LOLModule *module) override;
     int64_t value;
 };
 
@@ -58,6 +61,7 @@ public:
     NodeKind kind() override {
         return NConstantString; }
     void dump() override;
+    llvm::Value *generate_code(LOLModule *module) override;
     std::string value;
 };
 

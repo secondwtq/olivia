@@ -16,6 +16,12 @@ namespace Olivia {
 
 #define LEXRET(t) { prevtok = curtok; curtok = t; return t; }
 
+bool isLegalIdentifierStarter(LexerTokenType t) {
+    return isalpha(t) || t == '_' || t == '$' || t == '#' || t == '?' || t == '@'; }
+
+bool isLegalIdentifierCharacter(LexerTokenType t) {
+    return isLegalIdentifierStarter(t) || isdigit(t); }
+
 LexerTokenType LOLexer::lex() {
     while (1) {
         switch (curchr) {
@@ -33,6 +39,37 @@ LexerTokenType LOLexer::lex() {
                 advance();
                 curcol = 1;
                 continue;
+            case '+':
+                advance();
+                switch (curchr) {
+                    case '=':
+                        advance();
+                        LEXRET(TInplaceAdd);
+                    case '+':
+                        advance();
+                        LEXRET(TIncrement);
+                    default:
+                        LEXRET('+');
+                }
+            case '-':
+                advance();
+                switch (curchr) {
+                    case '=':
+                        advance();
+                        LEXRET(TInplaceSub);
+                    case '-':
+                        advance();
+                        LEXRET(TDecrement);
+                    default:
+                    LEXRET('-');
+                }
+            case '*':
+                advance();
+                if (curchr == '=') {
+                    advance();
+                    LEXRET(TInplaceMul);
+                }
+                LEXRET('*');
             case '/':
                 advance();
                 switch (curchr) {
@@ -49,7 +86,22 @@ LexerTokenType LOLexer::lex() {
                     default:
                         LEXRET('/');
                 }
-
+            case '%':
+                break;
+            case '"':
+                break;
+            case '\'':
+                break;
+            case '!':
+                break;
+            case '=':
+                advance();
+                switch(curchr) {
+                    case '=':
+                        LEXRET(TEqual);
+                    default:
+                        LEXRET('=');
+                }
             case '{':
             case '}':
             case '(':
@@ -69,7 +121,7 @@ LexerTokenType LOLexer::lex() {
                 if (isdigit(curchr)) {
                     LexerTokenType r = lex_number();
                     LEXRET(r);
-                } else if (isalpha(curchr) || curchr == '_') {
+                } else if (isLegalIdentifierStarter(curchr)) {
                     LexerTokenType r = lex_ansequence();
                     LEXRET(r);
                 } else {
@@ -170,7 +222,7 @@ LexerTokenType LOLexer::lex_ansequence() {
     do {
         buf.append(1, curchr);
         advance();
-    } while (isalnum(curchr) || curchr == '_');
+    } while (isLegalIdentifierCharacter(curchr));
     auto i = keyword_map.find(buf);
     if (i != keyword_map.end()) {
         r = i->second;
@@ -199,6 +251,8 @@ void LOLexer::init_keyword_map() {
     KEYWORD(int32, TInt32);
     KEYWORD(double, TDouble);
     KEYWORD(string, TString);
+    KEYWORD(rawstring, TRawString);
+
     KEYWORD(extern, TExtern);
 
     KEYWORD(true, TTrue);

@@ -40,6 +40,8 @@ std::shared_ptr<AST::NodeStatement> LOParser::parse_statement(std::shared_ptr<AS
             return parse_function_declaration(parent);
         case TExtern:
             return parse_function_extern_declaration(parent);
+        case TReturn:
+            return parse_return_statement(parent);
         case '{':
             break;
         default:
@@ -185,9 +187,11 @@ void LOParser::error(const char *message) {
     printf("%s\n", message);
 }
 
-std::shared_ptr<AST::NodeDeclarationSignature> LOParser::parse_function_signature(std::shared_ptr<AST::Node> parent) {
+std::shared_ptr<AST::NodeDeclarationSignature> LOParser::parse_function_signature(
+        std::shared_ptr<AST::Node> parent, const std::string& name) {
     expect('(');
     auto ret = std::make_shared<AST::NodeDeclarationSignature>(parent);
+    ret->trusted_name = name;
     while (token != ')') {
         auto p = std::make_shared<AST::NodeDeclarationParameter>(ret);
         p->name = parse_identifier(p);
@@ -207,7 +211,7 @@ std::shared_ptr<AST::NodeDeclarationFunction> LOParser::parse_function_declarati
     lex();
     auto ret = std::make_shared<AST::NodeDeclarationFunction>(parent);
     ret->name = parse_identifier(ret);
-    ret->signature = parse_function_signature(ret);
+    ret->signature = parse_function_signature(ret, ret->name->name);
     ret->body = parse_block(ret);
     return ret;
 }
@@ -218,7 +222,7 @@ std::shared_ptr<AST::NodeDeclarationExternFunction> LOParser::parse_function_ext
     expect(TFunction);
     auto ret = std::make_shared<AST::NodeDeclarationExternFunction>(parent);
     ret->name = parse_identifier(ret);
-    ret->signature = parse_function_signature(ret);
+    ret->signature = parse_function_signature(ret, ret->name->name);
     expect(';');
     return ret;
 }
@@ -277,6 +281,9 @@ std::vector<std::shared_ptr<AST::NodeExpression>> LOParser::parse_call_arguments
         auto t = parse_expression(parent);
         if (t) {
             ret.push_back(t); }
+        if (token == ')') {
+            break;
+        } else { expect(','); }
     }
     expect(')');
     return std::move(ret);
@@ -428,6 +435,14 @@ std::shared_ptr<AST::NodeStatementExpression> LOParser::parse_expression_stateme
     auto ret = std::make_shared<AST::NodeStatementExpression>(parent);
     auto e = parse_expression(ret);
     ret->expression = e;
+    expect(';');
+    return ret;
+}
+
+std::shared_ptr<AST::NodeStatementReturn> LOParser::parse_return_statement(std::shared_ptr<AST::Node> parent) {
+    expect(TReturn);
+    auto ret = std::make_shared<AST::NodeStatementReturn>(parent);
+    ret->expression = parse_expression(ret);
     expect(';');
     return ret;
 }

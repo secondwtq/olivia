@@ -75,10 +75,12 @@ void LOScript::finishupDeclarations() {
 
 bool OliveType::findConcrete(LOScript *script) {
     assert(script);
-    if (script->hasClassNamed(m_concrete_tmp)) {
-        m_concrete = script->getClassNamed(m_concrete_tmp);
-        return true;
-    } else { return false; }
+    if (baseType() == TypeObject) {
+        if (script->hasClassNamed(m_concrete_tmp)) {
+            m_concrete = script->getClassNamed(m_concrete_tmp);
+            return true;
+        } else { return false; }
+    }
 }
 
 std::shared_ptr<LOClass> LOScript::getClassNamed(const std::string& name) {
@@ -86,6 +88,49 @@ std::shared_ptr<LOClass> LOScript::getClassNamed(const std::string& name) {
     if (i != custom_types.end()) {
         return i->second;
     } else { return nullptr; }
+}
+
+void LOScript::addGlobalFunction(std::shared_ptr<AST::NodeDeclarationFunction> ast_node) {
+    std::string name = ast_node->name->name;
+    assert(!hasGlobalFunctionNamed(name));
+    LOG("Adding global function %s returning <%s> ...\n", ast_node->name->name.c_str(),
+            convertValueTypeToString(ast_node->signature->return_type->base_type));
+    global_functions[name] = ast_node;
+}
+
+void LOScript::addExternFunction(std::shared_ptr<AST::NodeDeclarationExternFunction> ast_node) {
+    std::string name = ast_node->name->name;
+    assert(!hasGlobalFunctionNamed(name));
+    LOG("Adding extern function %s returning <%s> ...\n", ast_node->name->name.c_str(),
+            convertValueTypeToString(ast_node->signature->return_type->base_type));
+    global_functions[name] = ast_node;
+}
+
+bool LOScript::hasGlobalFunctionNamed(const std::string& name) {
+    auto i = global_functions.find(name);
+    if (i == global_functions.end()) {
+        return false;
+    } else { return true; }
+}
+
+std::shared_ptr<AST::NodeDeclaration> LOScript::getGlobalFunctionNamed(const std::string& name) {
+    auto i = global_functions.find(name);
+    if (i == global_functions.end()) {
+        return nullptr;
+    } else { return i->second; }
+}
+
+ResolveResult LOScript::resolveIdentifier(AST::NodeIdentifier *id) {
+    ResolveResult ret;
+    ret.type = RNone, ret.node = nullptr;
+
+    if (hasGlobalFunctionNamed(id->name)) {
+        ret.type = RGlobalFunction;
+        ret.node = getGlobalFunctionNamed(id->name);
+        return ret;
+    }
+
+    return ret;
 }
 
 }

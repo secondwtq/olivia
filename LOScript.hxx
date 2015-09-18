@@ -21,6 +21,16 @@ namespace Olivia {
 
 class LOClass;
 
+enum ResolveResultType {
+    RNone,
+    RGlobalFunction
+};
+
+struct ResolveResult {
+    ResolveResultType type;
+    std::shared_ptr<AST::Node> node;
+};
+
 class LOScript {
 public:
 
@@ -28,8 +38,16 @@ public:
     bool hasClassNamed(const std::string& name);
     std::shared_ptr<LOClass> addClass(std::shared_ptr<AST::Node> ast_node);
 
+    void addGlobalFunction(std::shared_ptr<AST::NodeDeclarationFunction> ast_node);
+    void addExternFunction(std::shared_ptr<AST::NodeDeclarationExternFunction> ast_node);
+    bool hasGlobalFunctionNamed(const std::string& name);
+    std::shared_ptr<AST::NodeDeclaration> getGlobalFunctionNamed(const std::string& name);
+
     void finishupDeclarations();
 
+    ResolveResult resolveIdentifier(AST::NodeIdentifier *id);
+
+    std::unordered_map<std::string, std::shared_ptr<AST::NodeDeclaration>> global_functions;
     std::unordered_map<std::string, LOValue> global_vars;
     std::unordered_map<std::string, std::shared_ptr<LOClass>> custom_types;
 };

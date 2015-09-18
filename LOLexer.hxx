@@ -67,7 +67,18 @@ enum LexerKeyTokenType {
     TExtern = -34,
 
     TTrue = -35,
-    TFalse = -36
+    TFalse = -36,
+
+    TInplaceAdd = -37,
+    TInplaceSub = -38,
+    TInplaceMul = -39,
+
+    TIncrement = -40,
+    TDecrement = -41,
+    TEqual = -42,
+    TNotEqual = -43,
+
+    TRawString = -44
 };
 
 typedef int16_t LexerTokenType;

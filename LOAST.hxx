@@ -17,7 +17,14 @@
 #include <memory>
 #include <vector>
 
+namespace llvm {
+class Value;
+class Function;
+}
+
 namespace Olivia {
+class LOASTVisitor;
+class LOLModule;
 namespace AST {
 
 enum NodeKind {
@@ -51,7 +58,9 @@ enum NodeKind {
     NBinaryExpression,
     NParenthesisExpression,
     NCallExpression,
-    NMemberExpression
+    NMemberExpression,
+
+    NStatementReturn
 };
 
 class Node {
@@ -61,7 +70,11 @@ public:
     Node(std::shared_ptr<Node> parent) : m_parent(parent) { }
 
     // temporarily empty implementation
-    virtual void generate_code() { }
+    virtual llvm::Value *generate_code(LOLModule *module) {
+        printf("invalid code generation operation.\n");
+        return nullptr;
+    }
+
     virtual ~Node() { }
 
     virtual void dump();
@@ -75,6 +88,8 @@ public:
 
     std::shared_ptr<Node> parent() {
         return m_parent.lock(); }
+
+    virtual void accept(LOASTVisitor *visitor);
 
 private:
     std::weak_ptr<Node> m_parent;
@@ -90,7 +105,8 @@ public:
 
 class NodeExpression : public Node {
 public:
-    NodeExpression(std::shared_ptr<Node> parent) : Node(parent) { }
+    NodeExpression(std::shared_ptr<Node> parent)
+            : Node(parent) { }
     virtual bool isLHS() const {
         return false; }
 };
@@ -144,6 +160,7 @@ public:
 
     void dump() override;
 
+    llvm::Value *generate_code(LOLModule *module) override;
     NodeKind kind() override {
         return NIdentifier; }
 
@@ -169,6 +186,7 @@ public:
         return NBinaryExpression; }
     void dump() override;
     std::shared_ptr<NodeExpression> lhs, rhs;
+    llvm::Value *generate_code(LOLModule *module) override;
     LexerTokenType op;
 };
 
@@ -178,6 +196,7 @@ public:
     NodeKind kind() override {
         return NCallExpression; }
     void dump() override;
+    llvm::Value *generate_code(LOLModule *module) override;
     std::shared_ptr<NodeLHSExpression> callee;
     std::vector<std::shared_ptr<NodeExpression>> arguments;
 };
@@ -194,6 +213,17 @@ public:
     std::shared_ptr<NodeExpression> expression;
     NodeKind kind() override {
         return NStatementExpression; }
+    llvm::Value *generate_code(LOLModule *module) override;
+    void dump() override;
+};
+
+class NodeStatementReturn : public NodeStatementExpression {
+public:
+    NodeStatementReturn(std::shared_ptr<Node> parent) : NodeStatementExpression(parent) { }
+//    std::shared_ptr<NodeExpression> expression;
+    NodeKind kind() override {
+        return NStatementExpression; }
+    llvm::Value *generate_code(LOLModule *module) override;
     void dump() override;
 };
 
@@ -223,6 +253,8 @@ public:
     void dump() override;
     NodeKind kind() override {
         return NStatementVar; }
+
+    llvm::Value *generate_code(LOLModule *module) override;
     std::shared_ptr<MiscVarDeclarationList> list;
 };
 
@@ -233,6 +265,7 @@ public:
     void dump() override;
     NodeKind kind() override {
         return NDeclarationVar; }
+    llvm::Value *generate_code(LOLModule *module) override;
     std::shared_ptr<NodeTypeSpec> type;
     std::shared_ptr<NodeExpression> initializer;
 };
@@ -244,6 +277,7 @@ public:
     void dump() override;
     NodeKind kind() override {
         return NVarDeclarationList; }
+    llvm::Value *generate_code(LOLModule *module) override;
     std::vector<std::shared_ptr<NodeDeclarationVar>> vars;
 };
 
@@ -306,6 +340,8 @@ public:
     NodeKind kind() override {
         return NDeclarationSignature; }
     void dump() override;
+    llvm::Value *generate_code(LOLModule *module) override;
+    std::string trusted_name;
 
     std::vector<std::shared_ptr<NodeDeclarationParameter>> parameters;
     std::shared_ptr<NodeTypeSpec> return_type;
@@ -318,6 +354,7 @@ public:
     NodeKind kind() override {
         return NStatementBlock; }
     void dump() override;
+    llvm::Value *generate_code(LOLModule *module) override;
     std::vector<std::shared_ptr<NodeStatement>> statements;
 };
 
@@ -329,6 +366,7 @@ public:
     void dump() override;
     NodeKind kind() override {
         return NDeclarationFunction; }
+    llvm::Value *generate_code(LOLModule *module) override;
     std::shared_ptr<NodeDeclarationSignature> signature;
     std::shared_ptr<NodeBlock> body;
 };
@@ -339,6 +377,7 @@ public:
             : NodeDeclaration(parent) { }
 
     void dump() override;
+    llvm::Value *generate_code(LOLModule *module) override;
     NodeKind kind() override {
         return NDeclarationExternFunction; }
     std::shared_ptr<NodeDeclarationSignature> signature;
