@@ -76,6 +76,7 @@ llvm::Value *NodeConstantString::generate_code(LOLModule *module) {
 llvm::Value *NodeBlock::generate_code(LOLModule *module) {
     for (auto statement : statements) {
         statement->generate_code(module); }
+    return nullptr;
 }
 
 llvm::Value *NodeDeclarationFunction::generate_code(LOLModule *module) {
@@ -175,10 +176,48 @@ llvm::Value *MiscVarDeclarationList::generate_code(LOLModule *module) {
 
 llvm::Value *NodeStatementReturn::generate_code(LOLModule *module) {
     module->builder()->CreateRet(expression->generate_code(module));
+    return nullptr;
 }
 
 llvm::Value *NodeBinaryExpression::generate_code(LOLModule *module) {
 
+}
+
+llvm::Value *NodeStatementIf::generate_code(LOLModule *module) {
+    Function *func = module->builder()->GetInsertBlock()->getParent();
+    Value *cond = cond_->generate_code(module);
+
+    BasicBlock *bb_then = BasicBlock::Create(getGlobalContext(), "then", func);
+    BasicBlock *bb_else = nullptr;
+    BasicBlock *bb_cont = BasicBlock::Create(getGlobalContext(), "ifcont");
+
+    cond = module->builder()->CreateICmpNE(cond,
+            ConstantInt::get(Type::getInt32Ty(getGlobalContext()), 0, true), "ifcond");
+
+    if (hasElse()) {
+        module->builder()->CreateCondBr(cond, bb_then, bb_else);
+    } else {
+        // is this okay?
+        module->builder()->CreateCondBr(cond, bb_then, bb_cont);
+    }
+
+    {
+        module->builder()->SetInsertPoint(bb_then);
+        Value *v_then = then_->generate_code(module);
+        module->builder()->CreateBr(bb_cont);
+    }
+
+    if (hasElse()) {
+        bb_else = BasicBlock::Create(getGlobalContext(), "else");
+        func->getBasicBlockList().push_back(bb_else);
+
+        module->builder()->SetInsertPoint(bb_else);
+        Value *v_else = else_->generate_code(module);
+        module->builder()->CreateBr(bb_cont);
+    }
+
+    func->getBasicBlockList().push_back(bb_cont);
+    return nullptr;
 }
 
 }

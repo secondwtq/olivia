@@ -13,22 +13,22 @@
 namespace Olivia {
 namespace AST {
 
-void Node::dump() {
+void Node::dump() const {
     dump_output("Node - Base");
 }
 
-void NodeIdentifier::dump() {
+void NodeIdentifier::dump() const {
     dump_output("Identifier - " + name);
 }
 
-void NodeStatementVar::dump() {
+void NodeStatementVar::dump() const {
     dump_output("Statement - 'var'");
     if (list) {
         list->dump();
     }
 }
 
-void NodeDeclarationVar::dump() {
+void NodeDeclarationVar::dump() const {
     dump_output("Declaration - 'var'");
     if (name) {
         name->dump();
@@ -41,14 +41,14 @@ void NodeDeclarationVar::dump() {
     }
 }
 
-void NodeTypeSpec::dump() {
+void NodeTypeSpec::dump() const {
     dump_output(std::string("Node - Type - ") + convertValueTypeToString(base_type));
     if (concrete_type) {
         concrete_type->dump();
     }
 }
 
-void NodeDeclarationClassElement::dump() {
+void NodeDeclarationClassElement::dump() const {
     dump_output("Declaration - element of 'class'");
     if (name) {
         name->dump();
@@ -58,7 +58,7 @@ void NodeDeclarationClassElement::dump() {
     }
 }
 
-void NodeDeclarationClass::dump() {
+void NodeDeclarationClass::dump() const {
     dump_output("Decleartion - 'class'");
     if (name) {
         name->dump();
@@ -68,14 +68,14 @@ void NodeDeclarationClass::dump() {
     }
 }
 
-void MiscVarDeclarationList::dump() {
+void MiscVarDeclarationList::dump() const {
     dump_output("Misc - 'var' declearation list");
     for (auto var : vars) {
         var->dump();
     }
 }
 
-void Node::dump_output(const std::string& msg) {
+void Node::dump_output(const std::string& msg) const {
     if (!this->parent()) {
         printf("%s\n", msg.c_str());
     } else {
@@ -83,7 +83,7 @@ void Node::dump_output(const std::string& msg) {
     }
 }
 
-void NodeDeclarationClassElementState::dump() {
+void NodeDeclarationClassElementState::dump() const {
     dump_output("Declaration - class element state");
     if (name) {
         name->dump();
@@ -93,7 +93,7 @@ void NodeDeclarationClassElementState::dump() {
     }
 }
 
-void NodeDeclarationClassElementMethod::dump() {
+void NodeDeclarationClassElementMethod::dump() const {
     dump_output("Declaration - class element method");
     if (name) {
         name->dump();
@@ -103,7 +103,7 @@ void NodeDeclarationClassElementMethod::dump() {
     }
 }
 
-void NodeDeclarationParameter::dump() {
+void NodeDeclarationParameter::dump() const {
     dump_output("Declaration - parameter");
     if (name) {
         name->dump();
@@ -113,7 +113,7 @@ void NodeDeclarationParameter::dump() {
     }
 }
 
-void NodeDeclarationSignature::dump() {
+void NodeDeclarationSignature::dump() const {
     dump_output("Declaration - signature");
     for (auto parameter : parameters) {
         parameter->dump();
@@ -123,7 +123,7 @@ void NodeDeclarationSignature::dump() {
     }
 }
 
-void NodeDeclarationFunction::dump() {
+void NodeDeclarationFunction::dump() const {
     dump_output("Declaration - 'function'");
     if (name) {
         name->dump();
@@ -136,14 +136,14 @@ void NodeDeclarationFunction::dump() {
     }
 }
 
-void NodeBlock::dump() {
+void NodeBlock::dump() const {
     dump_output("Statement - block");
     for (auto statement : statements) {
         statement->dump();
     }
 }
 
-void NodeDeclarationExternFunction::dump() {
+void NodeDeclarationExternFunction::dump() const {
     dump_output("Declaration - 'extern function'");
     if (name) {
         name->dump();
@@ -153,7 +153,7 @@ void NodeDeclarationExternFunction::dump() {
     }
 }
 
-void NodeBinaryExpression::dump() {
+void NodeBinaryExpression::dump() const {
     std::string ret = "Expression - Binary - <";
     ret += op;
     ret += ">";
@@ -164,13 +164,13 @@ void NodeBinaryExpression::dump() {
         rhs->dump(); }
 }
 
-void NodeParenthesisExpression::dump() {
+void NodeParenthesisExpression::dump() const {
     dump_output("Expression - Parenthesis");
     if (expression) {
         expression->dump(); }
 }
 
-void NodeCallExpression::dump() {
+void NodeCallExpression::dump() const {
     dump_output("Expression - Call");
     if (callee) {
         callee->dump(); }
@@ -178,7 +178,7 @@ void NodeCallExpression::dump() {
         argument->dump(); }
 }
 
-void NodeMemberExpression::dump() {
+void NodeMemberExpression::dump() const {
     dump_output("Expression - Member Access");
     if (expression) {
         expression->dump(); }
@@ -186,13 +186,13 @@ void NodeMemberExpression::dump() {
         name->dump(); }
 }
 
-void NodeStatementExpression::dump() {
+void NodeStatementExpression::dump() const {
     dump_output("Statement - Expression");
     if (expression) {
         expression->dump(); }
 }
 
-void NodeStatementReturn::dump() {
+void NodeStatementReturn::dump() const {
     dump_output("Statement - 'return'");
     if (expression) {
         expression->dump(); }
@@ -200,6 +200,16 @@ void NodeStatementReturn::dump() {
 
 void Node::accept(LOASTVisitor *visitor) {
 
+}
+
+void NodeStatementIf::dump() const {
+    dump_output("Statement - If");
+    if (cond_) {
+        cond_->dump(); }
+    if (then_) {
+        then_->dump(); }
+    if (else_) {
+        else_->dump(); }
 }
 
 }

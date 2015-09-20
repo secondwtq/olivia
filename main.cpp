@@ -24,7 +24,12 @@ const unsigned char testcode[] = ""
 "   }"
         ""
         "function t() : int32 {"
-            "main(1);"
+            "if (1) {"
+            "   main(1);"
+            "}"
+            "if (0) {"
+        "       main(2);"
+        "   }"
         "}"
 "";
 

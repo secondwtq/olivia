@@ -25,9 +25,9 @@ class NodeConstantBoolean : public NodeConstant {
 public:
     NodeConstantBoolean(std::shared_ptr<Node> parent)
             : NodeConstant(parent) { }
-    NodeKind kind() override {
+    NodeKind kind() const override {
         return NConstantBoolean; }
-    void dump() override;
+    void dump() const override;
     llvm::Value *generate_code(LOLModule *module) override;
     bool value;
 };
@@ -36,9 +36,9 @@ class NodeConstantDouble : public NodeConstant {
 public:
     NodeConstantDouble(std::shared_ptr<Node> parent)
             : NodeConstant(parent) { }
-    NodeKind kind() override {
+    NodeKind kind() const override {
         return NConstantDouble; }
-    void dump() override;
+    void dump() const override;
     llvm::Value *generate_code(LOLModule *module) override;
     double value;
 };
@@ -47,9 +47,9 @@ class NodeConstantInteger : public NodeConstant {
 public:
     NodeConstantInteger(std::shared_ptr<Node> parent)
             : NodeConstant(parent) { }
-    NodeKind kind() override {
+    NodeKind kind() const override {
         return NConstantInteger; }
-    void dump() override;
+    void dump() const override;
     llvm::Value *generate_code(LOLModule *module) override;
     int64_t value;
 };
@@ -58,9 +58,9 @@ class NodeConstantString : public NodeConstant {
 public:
     NodeConstantString(std::shared_ptr<Node> parent)
             : NodeConstant(parent) { }
-    NodeKind kind() override {
+    NodeKind kind() const override {
         return NConstantString; }
-    void dump() override;
+    void dump() const override;
     llvm::Value *generate_code(LOLModule *module) override;
     std::string value;
 };
