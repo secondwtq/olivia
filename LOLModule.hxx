@@ -29,13 +29,19 @@ class LOScript;
 
 struct LOLLocalDef {
 public:
-    LOLLocalDef(OliveType t, llvm::Value *v) : type(t), value(v) { }
-    OliveType type;
+    LOLLocalDef(std::shared_ptr<OliveType> t, llvm::Value *v)
+            : type(t), value(v) { }
+    std::shared_ptr<OliveType> type;
     llvm::Value *value;
 };
 
 class LOLGenBlock {
 public:
+
+    LOLGenBlock() : LOLGenBlock(nullptr) { }
+    LOLGenBlock(llvm::BasicBlock *bb)
+            : block(bb) { }
+
     llvm::BasicBlock *block;
     std::unordered_map<std::string, std::shared_ptr<LOLLocalDef>> locals;
 

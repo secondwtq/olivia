@@ -24,36 +24,51 @@ using namespace llvm;
 
 Type *convertValueTypeToLLVMType(LOValueType type) {
     switch (type) {
+        // TODO: type structure conv for these types.
+        case TypeNone:
+        case TypeUndefined:
+        case TypeNull:
+        case TypeCell:
+            return nullptr;
         case TypeVoid:
             return Type::getVoidTy(llvm::getGlobalContext());
+        case TypeBoolean:
+            return Type::getInt1Ty(llvm::getGlobalContext());
         case TypeInt8:
             return Type::getInt8Ty(llvm::getGlobalContext());
         case TypeInt32:
-            return Type::getInt32Ty(llvm::getGlobalContext());
         case TypeUInt32:
             return Type::getInt32Ty(llvm::getGlobalContext());
         case TypeDouble:
             return Type::getDoubleTy(llvm::getGlobalContext());
+        case TypeRawString:
+            return Type::getInt1PtrTy(llvm::getGlobalContext());
+        case TypeString:
+        case TypeObject:
+            return nullptr;
     }
     return nullptr;
 }
 
-Type *convertTypeToLLVMType(const OliveType& type) {
-    return convertValueTypeToLLVMType(type.baseType());
+Type *convertOliveTypeToLLVMType(const OliveType& type) {
+    switch (type.baseType()) {
+        case TypeNone:
+        case TypeVoid:
+        case TypeBoolean:
+        case TypeInt8:
+        case TypeInt32:
+        case TypeUInt32:
+        case TypeDouble:
+        case TypeRawString:
+            return convertValueTypeToLLVMType(type.baseType());
+        case TypeString:
+        case TypeObject:
+            return nullptr;
+    }
 }
 
-Type *convertTypeSpecNodeToLLVMType(const AST::NodeTypeSpec& type) {
-    return convertValueTypeToLLVMType(type.base_type);
-}
-
-OliveType convertTypeSpecNodeToOliveType(const AST::NodeTypeSpec& type, LOScript *script) {
-    OliveType ret;
-    ret.setBaseType(type.base_type);
-    if (type.concrete_type) {
-        ret.setConcreteName(type.concrete_type->name); }
-    ret.findConcrete(script);
-    return ret;
-}
+Type *convertTypeSpecNodeToLLVMType(const AST::NodeTypeSpec& type, LOScript &script) {
+    return convertOliveTypeToLLVMType(*(convertTypeSpecNodeToOliveType(type, script))); }
 
 namespace AST {
 
@@ -83,10 +98,7 @@ llvm::Value *NodeDeclarationFunction::generate_code(LOLModule *module) {
     Function *func = dyn_cast<Function>(signature->generate_code(module));
     BasicBlock *bb = BasicBlock::Create(llvm::getGlobalContext(), "entry", func);
 
-    std::shared_ptr<LOLGenBlock> lb = std::make_shared<LOLGenBlock>();
-    lb->block = bb;
-
-    module->blockPush(lb);
+    module->blockPush(std::make_shared<LOLGenBlock>(bb));
     module->builder()->SetInsertPoint(bb);
 
     llvm::Value *b = body->generate_code(module);
@@ -106,8 +118,9 @@ llvm::Value *NodeDeclarationExternFunction::generate_code(LOLModule *module) {
 llvm::Value *NodeDeclarationSignature::generate_code(LOLModule *module) {
     std::vector<Type *> arg_types;
     for (auto arg : parameters) {
-        arg_types.push_back(convertTypeSpecNodeToLLVMType(*arg->type)); }
-    FunctionType *ft = FunctionType::get(convertTypeSpecNodeToLLVMType(*return_type), arg_types, false);
+        arg_types.push_back(convertTypeSpecNodeToLLVMType(*arg->ptype, *module->script())); }
+    FunctionType *ft = FunctionType::get(convertTypeSpecNodeToLLVMType(
+            *return_type, *module->script()), arg_types, false);
     Function *f = Function::Create(ft, Function::ExternalLinkage,
             this->trusted_name, module->module().get());
 
@@ -161,9 +174,9 @@ llvm::Value *NodeDeclarationVar::generate_code(LOLModule *module) {
 
     AllocaInst *alloca = LOLModule::createAllocaAtEntry(
             module->builder()->GetInsertBlock()->getParent(),
-            name->name, convertTypeSpecNodeToLLVMType(*type));
+            name->name, convertTypeSpecNodeToLLVMType(*type, *module->script()));
     module->blockTop()->locals[name->name] = std::make_shared<LOLLocalDef>(
-            convertTypeSpecNodeToOliveType(*type, module->script().get()), alloca);
+            convertTypeSpecNodeToOliveType(*type, *module->script()), alloca);
 
     return alloca;
 }
@@ -202,18 +215,22 @@ llvm::Value *NodeStatementIf::generate_code(LOLModule *module) {
     }
 
     {
+        module->blockPush(std::make_shared<LOLGenBlock>(bb_then));
         module->builder()->SetInsertPoint(bb_then);
         Value *v_then = then_->generate_code(module);
         module->builder()->CreateBr(bb_cont);
+        module->blockPop();
     }
 
     if (hasElse()) {
         bb_else = BasicBlock::Create(getGlobalContext(), "else");
         func->getBasicBlockList().push_back(bb_else);
 
+        module->blockPush(std::make_shared<LOLGenBlock>(bb_else));
         module->builder()->SetInsertPoint(bb_else);
         Value *v_else = else_->generate_code(module);
         module->builder()->CreateBr(bb_cont);
+        module->blockPop();
     }
 
     func->getBasicBlockList().push_back(bb_cont);

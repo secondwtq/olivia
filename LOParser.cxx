@@ -195,7 +195,7 @@ std::shared_ptr<AST::NodeDeclarationSignature> LOParser::parse_function_signatur
     while (token != ')') {
         auto p = std::make_shared<AST::NodeDeclarationParameter>(ret);
         p->name = parse_identifier(p);
-        p->type = parse_type(p);
+        p->ptype = parse_type(p);
         ret->parameters.push_back(p);
 
         if (token == ')') {

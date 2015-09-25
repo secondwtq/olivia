@@ -11,7 +11,7 @@ set(SOURCE_FILES main.cpp LOValue.cxx LOValue.hxx LOCell.hxx LOCell.cxx LOCell.h
         LOLexer.cxx LOLexer.hxx LOFrontendSpirit.cxx LOFrontendSpirit.hxx
         LOAST.cxx LOAST.hxx LOParser.cxx LOParser.hxx LOScript.cxx LOScript.hxx
         LOCommon.hxx LOASTConstant.cxx LOASTConstant.hxx
-        LOLBackend.cxx LOLBackend.hxx LOLModule.cxx LOLModule.hxx LOASTVisitor.cxx LOASTVisitor.hxx LOLCodegen.cxx LOLCodegen.hxx LOResolver.cxx LOResolver.hxx)
+        LOLBackend.cxx LOLBackend.hxx LOLModule.cxx LOLModule.hxx LOASTVisitor.cxx LOASTVisitor.hxx LOLCodegen.cxx LOLCodegen.hxx LOResolver.cxx LOResolver.hxx LOHLBasic.cxx LOHLBasic.hxx LOHLASTVisitor.cxx LOHLASTVisitor.hxx LOType.cxx LOType.hxx LOIntrusiveList.cxx LOIntrusiveList.hxx)
 add_executable(VMForOlive ${SOURCE_FILES})
 set(VMOLIVE_LIBS LLVMCore LLVMSupport)
 list(APPEND VMOLIVE_LIBS curses)

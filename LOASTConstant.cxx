@@ -9,6 +9,9 @@
 
 #include "LOASTConstant.hxx"
 #include "LOAST.hxx"
+#include "LOASTVisitor.hxx"
+
+#include <limits.h>
 
 namespace Olivia {
 namespace AST {
@@ -37,5 +40,17 @@ void NodeConstantString::dump() const {
     dump_output(ret);
 }
 
+std::shared_ptr<OliveType> NodeConstantInteger::type() const {
+    // TODO: more boundary checks
+    if (value >= INT8_MIN && value <= INT8_MAX) {
+        return std::make_shared<OliveType>(TypeInt8);
+    } else if (value >= INT32_MIN && value <= INT32_MAX) {
+        return std::make_shared<OliveType>(TypeInt32);
+    } else if (value <= UINT32_MAX) {
+        return std::make_shared<OliveType>(TypeUInt32); }
+    return nullptr;
 }
+
+}
+
 }

@@ -15,10 +15,13 @@
 
 #include <string>
 #include <memory>
+#include <vector>
 
 namespace Olivia {
 
 enum LOValueType {
+    TypeNone,
+
     TypeVoid,
     TypeBoolean,
     TypeDouble,
@@ -30,7 +33,9 @@ enum LOValueType {
     TypeNull,
     TypeString,
     TypeRawString,
-    TypeObject
+    TypeObject,
+
+    TypeFunction
 };
 
 const char *convertValueTypeToString(LOValueType type);
@@ -40,6 +45,11 @@ class LOScript;
 
 struct OliveType {
 public:
+
+    OliveType() : OliveType(TypeNone) { }
+    OliveType(LOValueType base_type) :
+            m_base_type(base_type) { }
+
     void setBaseType(LOValueType type) {
         m_base_type = type; }
     LOValueType baseType() const {
@@ -59,11 +69,29 @@ public:
     void setConcreteName(const std::string& name) {
         m_concrete_tmp = name; }
 
+    void setCallable(bool callable) {
+        m_callable = callable; }
+    bool callable() const {
+        return m_callable; }
+
+    std::shared_ptr<OliveType> callReturnType;
+    std::vector<std::shared_ptr<OliveType>> callArguments;
+
 private:
+    bool m_callable = false;
+
     LOValueType m_base_type;
     std::shared_ptr<LOClass> m_concrete;
     std::string m_concrete_tmp;
 };
+
+namespace AST {
+class NodeTypeSpec;
+}
+
+std::shared_ptr<OliveType> convertTypeSpecNodeToOliveType(
+        const AST::NodeTypeSpec& type, LOScript &script);
+std::string convertOliveTypeToString(const OliveType& type);
 
 enum LOValueOtherType : uint8_t {
     PrimitiveBoolean = 0x1 << 0,

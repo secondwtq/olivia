@@ -30,6 +30,10 @@ public:
     void dump() const override;
     llvm::Value *generate_code(LOLModule *module) override;
     bool value;
+
+    std::shared_ptr<OliveType> type() const override {
+            return std::make_shared<OliveType>(TypeBoolean); }
+    void accept(LOASTVisitor *visitor) override;
 };
 
 class NodeConstantDouble : public NodeConstant {
@@ -41,6 +45,10 @@ public:
     void dump() const override;
     llvm::Value *generate_code(LOLModule *module) override;
     double value;
+
+    std::shared_ptr<OliveType> type() const override {
+        return std::make_shared<OliveType>(TypeDouble); }
+    void accept(LOASTVisitor *visitor) override;
 };
 
 class NodeConstantInteger : public NodeConstant {
@@ -52,6 +60,9 @@ public:
     void dump() const override;
     llvm::Value *generate_code(LOLModule *module) override;
     int64_t value;
+
+    std::shared_ptr<OliveType> type() const;
+    void accept(LOASTVisitor *visitor) override;
 };
 
 class NodeConstantString : public NodeConstant {
@@ -63,6 +74,10 @@ public:
     void dump() const override;
     llvm::Value *generate_code(LOLModule *module) override;
     std::string value;
+
+    std::shared_ptr<OliveType> type() const {
+        return std::make_shared<OliveType>(TypeRawString); }
+    void accept(LOASTVisitor *visitor) override;
 };
 
 }

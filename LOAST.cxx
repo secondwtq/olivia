@@ -108,8 +108,8 @@ void NodeDeclarationParameter::dump() const {
     if (name) {
         name->dump();
     }
-    if (type) {
-        type->dump();
+    if (ptype) {
+        ptype->dump();
     }
 }
 
@@ -198,10 +198,6 @@ void NodeStatementReturn::dump() const {
         expression->dump(); }
 }
 
-void Node::accept(LOASTVisitor *visitor) {
-
-}
-
 void NodeStatementIf::dump() const {
     dump_output("Statement - If");
     if (cond_) {
@@ -210,6 +206,26 @@ void NodeStatementIf::dump() const {
         then_->dump(); }
     if (else_) {
         else_->dump(); }
+}
+
+std::shared_ptr<OliveType> NodeIdentifier::type() const {
+
+}
+
+std::shared_ptr<OliveType> NodeMemberExpression::type() const {
+
+}
+
+std::shared_ptr<OliveType> NodeBinaryExpression::type() const {
+
+}
+
+std::shared_ptr<OliveType> NodeCallExpression::type() const {
+
+}
+
+std::shared_ptr<OliveType> NodePrefixUnaryExpression::type() const {
+
 }
 
 }
