@@ -17,8 +17,6 @@
 #include <memory>
 #include <vector>
 
-#include "LOHLBasic.hxx"
-
 namespace llvm {
 class Value;
 class Function;

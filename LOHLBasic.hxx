@@ -25,8 +25,10 @@ namespace HL {
 enum HLInstrKind {
     HUnknown,
     HPushLocalVariableRef,
+    HPushGlobalVariableRef,
     HPushArgumentRef,
-    HPushConstant,
+    HPushConstantArithmetic,
+    HPushConstantGlobal,
     HAllocLocalVariable,
     HFreeLocalVariable,
     HStoreLocalVariable,
@@ -57,12 +59,17 @@ struct HLVariableInfo {
     std::string name;
     std::shared_ptr<OliveType> type;
     virtual bool isLocal() const { return false; }
+    virtual bool isConstant() const { return false; }
     virtual ~HLVariableInfo() { }
 };
 
 struct HLVariableInfoLocal : public HLVariableInfo {
     bool isLocal() const override { return true; }
     size_t slotID;
+};
+
+struct HLVariableInfoGlobalConstant : public HLVariableInfo {
+    bool isConstant() const override { return true; }
 };
 
 class HLSemanticBlock : public std::enable_shared_from_this<HLSemanticBlock> {
@@ -79,7 +86,8 @@ public:
     bool hasOwnName(const std::string& name);
     std::shared_ptr<HLVariableInfo> resolveVariableNamed(const std::string& name);
     size_t allocNameLocal(const std::string& name, std::shared_ptr<OliveType> type);
-    std::shared_ptr<HLVariableInfo> allocNameStatic(const std::string& name, std::shared_ptr<OliveType> type);
+    std::shared_ptr<HLVariableInfo> allocNameStatic(const std::string& name,
+            std::shared_ptr<OliveType> type, bool isConstant = false);
 
     virtual bool isFunction() const { return false; }
     std::shared_ptr<HLBlock> openBlock();
@@ -101,6 +109,8 @@ public:
     void setSemanticBlock(std::shared_ptr<HLSemanticBlock> block) {
         m_semantic_block = block; }
     std::string toString() const;
+
+    int64_t tmpID;
 
 private:
     std::weak_ptr<HLSemanticBlock> m_semantic_block;
@@ -138,25 +148,6 @@ private:
     size_t m_local_idx_max = 0;
 };
 
-class HLBlockBuilder {
-public:
-
-    HLBlockBuilder(std::shared_ptr<HLScript> script) : m_script(script) { }
-
-    void setCurrentBlock(std::shared_ptr<HLBlock> block) {
-        m_current_block = block; }
-    std::shared_ptr<HLBlock> currentBlock() {
-        return m_current_block; }
-    std::shared_ptr<HLScript> parentScript() {
-        return m_script.lock(); }
-
-    std::shared_ptr<HLSemanticBlock> currentSemanticBlock();
-
-private:
-    std::shared_ptr<HLBlock> m_current_block;
-    std::weak_ptr<HLScript> m_script;
-};
-
 class HLScript {
 public:
 
@@ -177,11 +168,25 @@ public:
     std::string instructionName() const override {
         return "push localvar"; }
     std::string toString() const override {
-        return instructionName() + " " + convertOliveTypeToString(*type()) +
-                " " + std::to_string(slotidx); }
+        return instructionName() + " (" + convertOliveTypeToString(*type()) +
+                ") " + std::to_string(slotidx); }
     size_t slotidx;
     std::shared_ptr<OliveType> type() const {
             return m_type; }
+    std::shared_ptr<OliveType> m_type;
+};
+
+class HLIPushGlobalVariableRef : public HLIPush {
+public:
+    HLInstrKind kind() const override {
+        return HPushGlobalVariableRef; }
+    std::string instructionName() const override {
+        return "push global"; }
+    std::string toString() const override {
+        return instructionName() + " (" + convertOliveTypeToString(*type()) +
+                                         ") "; }
+    std::shared_ptr<OliveType> type() const {
+        return m_type; }
     std::shared_ptr<OliveType> m_type;
 };
 
@@ -190,11 +195,11 @@ class HLIPushConstant : public HLIPush { };
 class HLIPushConstantArithmetic : public HLIPush {
 public:
     HLInstrKind kind() const override {
-        return HPushConstant; }
+        return HPushConstantArithmetic; }
     std::string instructionName() const override {
         return "push constant"; }
     std::string toString() const override {
-        std::string ret = instructionName() + " " + convertOliveTypeToString(*type()) + " ";
+        std::string ret = instructionName() + " (" + convertOliveTypeToString(*type()) + ") ";
         if (type()->baseType() == TypeBoolean) {
             ret += std::to_string(bool_type);
         } else if (type()->baseType() == TypeInt32) {
@@ -212,6 +217,23 @@ public:
         int32_t int32_type;
         double double_type;
     };
+};
+
+class HLIPushConstantGlobal : public HLIPush {
+public:
+    HLInstrKind kind() const override {
+        return HPushConstantGlobal; }
+    std::string instructionName() const override {
+        return "push globalconstant"; }
+    std::string toString() const override {
+        std::string ret = instructionName() + " (" +
+                convertOliveTypeToString(*type()) + ") " + path;
+        return ret;
+    }
+    std::shared_ptr<OliveType> type() const {
+        return m_type; }
+    std::shared_ptr<OliveType> m_type;
+    std::string path;
 };
 
 //
@@ -341,7 +363,7 @@ public:
     std::string instructionName() const override {
         return "branch jump"; }
     std::string toString() const override {
-        return instructionName() + " " + std::to_string((intptr_t) (dest.get())); }
+        return instructionName() + " " + std::to_string(dest->tmpID); }
     std::shared_ptr<HLBlock> dest;
 };
 
@@ -352,8 +374,8 @@ public:
     std::string instructionName() const override {
             return "branch bicondition"; }
     std::string toString() const override {
-            return instructionName() + " " + std::to_string((intptr_t) (dest_true.get())) +
-                    " " + std::to_string((intptr_t) (dest_false.get())); }
+            return instructionName() + " " + std::to_string(dest_true->tmpID) +
+                    " " + std::to_string(dest_false->tmpID); }
 
     std::shared_ptr<HLBlock> dest_true;
     std::shared_ptr<HLBlock> dest_false;

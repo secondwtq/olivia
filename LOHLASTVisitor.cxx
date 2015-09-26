@@ -19,13 +19,14 @@ using namespace AST;
 void HLEmitterVisitor::visit(NodeDeclarationExternFunction *node) {
     builder()->currentSemanticBlock()->allocNameStatic(
             node->name->name, convertSignatureToOliveType(
-            *node->signature, *builder()->parentScript()->lscript));
+            *node->signature, *builder()->parentScript()->lscript), true);
 }
 
 void HLEmitterVisitor::visit(AST::NodeDeclarationFunction *node) {
+    // alloc a Constant Global for functions in default
     builder()->currentSemanticBlock()->allocNameStatic(
             node->name->name, convertSignatureToOliveType(
-            *node->signature, *builder()->parentScript()->lscript));
+            *node->signature, *builder()->parentScript()->lscript), true);
 
     std::vector<std::shared_ptr<HLVariableInfo>> args;
     for (auto arg : node->signature->parameters) {
@@ -50,12 +51,12 @@ void HLEmitterVisitor::visit(AST::NodeDeclarationFunction *node) {
     // TODO: in-order free of local variables
     // TODO: you are 'freeing' variables after the 'return' instruction
     //      you should do it before it returns. so it remains a T0D0, disabled.
-//    for (auto local : builder()->currentSemanticBlock()->localLookupTable) {
-//        auto instr = std::make_shared<HLIFreeLocalVariable>();
-//        instr->slotidx = local.second->slotID;
-//        instr->m_type = local.second->type;
-//        builder()->currentBlock()->addInstruction(instr);
-//    }
+    //    for (auto local : builder()->currentSemanticBlock()->localLookupTable) {
+    //        auto instr = std::make_shared<HLIFreeLocalVariable>();
+    //        instr->slotidx = local.second->slotID;
+    //        instr->m_type = local.second->type;
+    //        builder()->currentBlock()->addInstruction(instr);
+    //    }
 
     builder()->setCurrentBlock(nullptr);
 }
@@ -89,10 +90,9 @@ void HLEmitterVisitor::visit(AST::NodeDeclarationVar *node) {
 }
 
 void HLEmitterVisitor::visit(AST::NodeBlock *node) {
-    auto semantic_block = builder()->currentSemanticBlock()->appendSemanticBlock();
-    auto block = semantic_block->openBlock();
-    builder()->setCurrentBlock(block);
-
+    //    auto semantic_block = builder()->currentSemanticBlock()->appendSemanticBlock();
+    //    auto block = semantic_block->openBlock();
+    //    builder()->setCurrentBlock(block);
     for (auto statement : node->statements) {
         statement->accept(this); }
 }
@@ -152,7 +152,38 @@ void HLEmitterVisitor::visit(AST::NodeIdentifier *node) {
         instr->m_type = resolved->type;
         instr->slotidx = std::static_pointer_cast<HLVariableInfoLocal>(resolved)->slotID;
         builder()->currentBlock()->addInstruction(instr);
+    } else if (resolved->isConstant()) {
+        auto instr = std::make_shared<HLIPushConstantGlobal>();
+        instr->m_type = resolved->type;
+        instr->path = node->name;
+        builder()->currentBlock()->addInstruction(instr);
+    } else {
+        auto instr = std::make_shared<HLIPushGlobalVariableRef>();
+        instr->m_type = resolved->type;
+        builder()->currentBlock()->addInstruction(instr);
     }
+}
+
+void HLEmitterVisitor::visit(AST::NodeStatementIf *node) {
+    node->cond_->accept(this);
+
+    std::shared_ptr<HLBlock> block_then = builder()->currentSemanticBlock()->appendSemanticBlock()->openBlock();
+    std::shared_ptr<HLBlock> block_else = node->hasElse() ? builder()->currentSemanticBlock()->
+            appendSemanticBlock()->openBlock() : nullptr;
+    std::shared_ptr<HLBlock> block_cont = builder()->currentSemanticBlock()->openBlock();
+    builder()->addBranchConditionBinary(block_then, node->hasElse() ? block_else : block_cont);
+
+    builder()->setCurrentBlock(block_then);
+    node->then_->accept(this);
+    builder()->addBranchJump(block_cont);
+
+    if (node->hasElse()) {
+        builder()->setCurrentBlock(block_else);
+        node->else_->accept(this);
+        builder()->addBranchJump(block_cont);
+    }
+
+    builder()->setCurrentBlock(block_cont);
 }
 
 }

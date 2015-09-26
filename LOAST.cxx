@@ -9,6 +9,7 @@
 
 #include "LOAST.hxx"
 #include "LOASTVisitor.hxx"
+#include "LOType.hxx"
 
 namespace Olivia {
 namespace AST {

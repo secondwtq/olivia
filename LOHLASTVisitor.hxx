@@ -10,6 +10,7 @@
 #ifndef VMFOROLIVE_LOHLASTVISITOR_HXX
 #define VMFOROLIVE_LOHLASTVISITOR_HXX
 
+#include "LOHLBuilder.hxx"
 #include "LOASTVisitor.hxx"
 #include "LOHLBasic.hxx"
 
@@ -31,7 +32,7 @@ public:
     void visit(AST::NodeStatementExpression* node) override;
     void visit(AST::NodeStatementReturn* node) override;
     void visit(AST::NodeBlock* node) override;
-    void visit(AST::NodeStatementIf* node) override { }
+    void visit(AST::NodeStatementIf* node) override;
 
     void visit(AST::NodeTypeSpec* node) override { }
     void visit(AST::NodeStatementVar* node) override;

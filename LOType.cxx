@@ -16,6 +16,8 @@
 #include "LOScript.hxx"
 #include "LOCell.hxx"
 
+#include <string>
+
 namespace Olivia {
 
 std::shared_ptr<OliveType> convertTypeSpecNodeToOliveType(
@@ -35,7 +37,7 @@ std::shared_ptr<OliveType> convertSignatureToOliveType(const AST::NodeDeclaratio
     ret->callReturnType = convertTypeSpecNodeToOliveType(*type.return_type, script);
     for (auto arg : type.parameters) {
         auto argtype = convertTypeSpecNodeToOliveType(*arg->ptype, script);
-        argtype->callArguments.push_back(argtype);
+        ret->callArguments.push_back(argtype);
     }
     return ret;
 }
@@ -44,7 +46,45 @@ std::string convertOliveTypeToString(const OliveType& type) {
     std::string ret = convertValueTypeToString(type.baseType());
     if (type.baseType() == TypeObject) {
         ret += type.concreteType()->name; }
+    if (type.baseType() == TypeFunction) {
+        ret += " (";
+        for (size_t i = 0; i < type.callArguments.size(); i++) {
+            if (i != 0) {
+                ret += ", "; }
+            ret += convertOliveTypeToString(*type.callArguments[i]);
+        }
+        ret += ") : " + convertOliveTypeToString(*type.callReturnType);
+    }
     return ret;
+}
+
+const char *convertValueTypeToString(Olivia::LOValueType type) {
+    switch (type) {
+        case TypeVoid:
+            return "void";
+        case TypeBoolean:
+            return "boolean";
+        case TypeDouble:
+            return "double";
+        case TypeInt32:
+            return "int32";
+        case TypeUInt32:
+            return "uint32";
+        case TypeInt8:
+            return "int8";
+        case TypeUndefined:
+            return "undefined";
+        case TypeNull:
+            return "null";
+        case TypeString:
+            return "String";
+        case TypeObject:
+            return "Object";
+        case TypeFunction:
+            return "Function";
+        default:
+            return "<unknown type>";
+    }
 }
 
 }

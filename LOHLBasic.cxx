@@ -14,13 +14,6 @@
 namespace Olivia {
 namespace HL {
 
-std::shared_ptr<HLSemanticBlock> HLBlockBuilder::currentSemanticBlock() {
-    if (currentBlock()) {
-        return currentBlock()->semanticBlock(); }
-    // TODO: multiple top-level semantic block
-    return parentScript()->semanticBlock;
-}
-
 HLFunction::HLFunction(std::shared_ptr<HLScript> parent, std::shared_ptr<HLSemanticBlock> parent_block,
         const std::vector<std::shared_ptr<HLVariableInfo>>& args, shared_exclusive)
         : HLSemanticBlock(parent_block), m_parent(parent) { }
@@ -75,9 +68,12 @@ size_t HLSemanticBlock::allocNameLocal(const std::string& name, std::shared_ptr<
 }
 
 std::shared_ptr<HLVariableInfo> HLSemanticBlock::allocNameStatic(
-        const std::string& name, std::shared_ptr<OliveType> type) {
+        const std::string& name, std::shared_ptr<OliveType> type, bool isConstant) {
     assert(!hasOwnName(name));
-    auto ret = std::make_shared<HLVariableInfo>();
+    std::shared_ptr<HLVariableInfo> ret;
+    if (!isConstant) {
+        ret = std::make_shared<HLVariableInfo>();
+    } else { ret = std::make_shared<HLVariableInfoGlobalConstant>(); }
     ret->name = name, ret->type = type;
     staticLookupTable.insert({ name, ret });
     return ret;
@@ -117,7 +113,8 @@ HLScript::HLScript(std::shared_ptr<LOScript> script) :
         semanticBlock(std::make_shared<HLSemanticBlock>(nullptr)), lscript(script) { }
 
 std::string HLBlock::toString() const {
-    std::string ret;
+    std::string ret = "#";
+    ret += std::to_string(tmpID) + ":\n";
     for (auto instruction : m_instructions) {
         ret += instruction->toString();
         ret += "\n";
@@ -126,9 +123,13 @@ std::string HLBlock::toString() const {
 }
 
 std::string HLFunction::toString() const {
+    for (size_t i = 0; i < blocks.size(); i++) {
+        blocks[i]->tmpID = i; }
+
     std::string ret;
     for (auto block : blocks) {
         ret += block->toString();
+        ret += "\n";
     }
     return ret;
 }

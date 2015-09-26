@@ -10,6 +10,7 @@
 #include "LOScript.hxx"
 #include "LOCommon.hxx"
 #include "LOCell.hxx"
+#include "LOType.hxx"
 
 #include <memory>
 #include <assert.h>

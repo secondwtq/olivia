@@ -38,7 +38,6 @@ enum LOValueType {
     TypeFunction
 };
 
-const char *convertValueTypeToString(LOValueType type);
 
 class LOClass;
 class LOScript;

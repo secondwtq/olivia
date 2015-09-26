@@ -31,6 +31,8 @@ std::shared_ptr<OliveType> convertSignatureToOliveType(
 std::shared_ptr<OliveType> convertNodeToOliveType(
         const AST::Node& type, LOScript& script);
 
+const char *convertValueTypeToString(LOValueType type);
+
 }
 
 #endif // VMFOROLIVE_LOTYPE_HXX
