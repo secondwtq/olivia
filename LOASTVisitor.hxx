@@ -25,6 +25,7 @@ class NodeStatementExpression;
 class NodeStatementReturn;
 class NodeBlock;
 class NodeStatementIf;
+class NodeStatementWhile;
 
 class NodeTypeSpec;
 class NodeStatementVar;
@@ -60,6 +61,7 @@ public:
 	virtual void visit(AST::NodeStatementReturn* node) = 0;
 	virtual void visit(AST::NodeBlock* node) = 0;
 	virtual void visit(AST::NodeStatementIf* node) = 0;
+	virtual void visit(AST::NodeStatementWhile *node) = 0;
 
 	virtual void visit(AST::NodeTypeSpec* node) = 0;
 	virtual void visit(AST::NodeStatementVar* node) = 0;
@@ -94,6 +96,7 @@ public:
 	void visit(AST::NodeStatementReturn* node) override { }
 	void visit(AST::NodeBlock* node) override { }
 	void visit(AST::NodeStatementIf* node) override { }
+    void visit(AST::NodeStatementWhile *node) override { }
 
 	void visit(AST::NodeTypeSpec* node) override { }
 	void visit(AST::NodeStatementVar* node) override { }

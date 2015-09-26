@@ -186,5 +186,19 @@ void HLEmitterVisitor::visit(AST::NodeStatementIf *node) {
     builder()->setCurrentBlock(block_cont);
 }
 
+void HLEmitterVisitor::visit(AST::NodeStatementWhile *node) {
+    std::shared_ptr<HLBlock> block_cond = builder()->currentSemanticBlock()->openBlock();
+    std::shared_ptr<HLBlock> block_body = builder()->currentSemanticBlock()->appendSemanticBlock()->openBlock();
+    std::shared_ptr<HLBlock> block_cont = builder()->currentSemanticBlock()->openBlock();
+    builder()->addBranchJump(block_cond);
+    builder()->setCurrentBlock(block_cond);
+    node->cond->accept(this);
+    builder()->addBranchConditionBinary(block_body, block_cont);
+    builder()->setCurrentBlock(block_body);
+    node->body->accept(this);
+    builder()->addBranchJump(block_cond);
+    builder()->setCurrentBlock(block_cont);
+}
+
 }
 }

@@ -13,6 +13,7 @@
 #include "LOHLBuilder.hxx"
 #include "LOASTVisitor.hxx"
 #include "LOHLBasic.hxx"
+#include "LOAST.hxx"
 
 namespace Olivia {
 namespace HL {
@@ -33,6 +34,7 @@ public:
     void visit(AST::NodeStatementReturn* node) override;
     void visit(AST::NodeBlock* node) override;
     void visit(AST::NodeStatementIf* node) override;
+    void visit(AST::NodeStatementWhile *node) override;
 
     void visit(AST::NodeTypeSpec* node) override { }
     void visit(AST::NodeStatementVar* node) override;

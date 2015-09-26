@@ -12,6 +12,7 @@
 
 #include "LOValue.hxx"
 #include "LOLexer.hxx"
+#include "LOASTVisitor.hxx"
 #include <stdint.h>
 #include <string>
 #include <memory>
@@ -61,6 +62,7 @@ enum NodeKind {
     NMemberExpression,
 
     NStatementIf,
+    NStatementWhile,
     NStatementReturn
 };
 
@@ -272,7 +274,7 @@ public:
 
 class NodeStatementIf : public NodeStatement {
 public:
-    NodeStatementIf(std::shared_ptr<Node> parent): NodeStatement(parent) { }
+    NodeStatementIf(std::shared_ptr<Node> parent) : NodeStatement(parent) { }
     std::shared_ptr<NodeExpression> cond_;
     std::shared_ptr<NodeStatement> then_;
     std::shared_ptr<NodeStatement> else_;
@@ -281,6 +283,19 @@ public:
     llvm::Value *generate_code(LOLModule *module) override;
     NodeKind kind() const override {
         return NStatementIf; }
+    void dump() const override;
+    void accept(LOASTVisitor *visitor) override;
+};
+
+class NodeStatementWhile : public NodeStatement {
+public:
+    NodeStatementWhile(std::shared_ptr<Node> parent)
+            : NodeStatement(parent) { }
+    std::shared_ptr<NodeExpression> cond;
+    std::shared_ptr<NodeStatement> body;
+
+    NodeKind kind() const override {
+        return NStatementWhile; }
     void dump() const override;
     void accept(LOASTVisitor *visitor) override;
 };

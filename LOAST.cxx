@@ -209,6 +209,14 @@ void NodeStatementIf::dump() const {
         else_->dump(); }
 }
 
+void NodeStatementWhile::dump() const {
+    dump_output("Statement - While");
+    if (cond) {
+        cond->dump(); }
+    if (body) {
+        body->dump(); }
+}
+
 std::shared_ptr<OliveType> NodeIdentifier::type() const {
 
 }

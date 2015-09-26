@@ -49,6 +49,9 @@ void NodeBlock::accept(LOASTVisitor *visitor) {
 void NodeStatementIf::accept(LOASTVisitor *visitor) {
     visitor->visit(this); }
 
+void NodeStatementWhile::accept(LOASTVisitor *visitor) {
+    visitor->visit(this); }
+
 void NodeDeclaration::accept(LOASTVisitor *visitor) {
     visitor->visit(this); }
 

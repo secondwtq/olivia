@@ -261,6 +261,8 @@ void LOLexer::init_keyword_map() {
     KEYWORD(if, TIf);
     KEYWORD(else, TElse);
 
+    KEYWORD(while, TWhile);
+
 #undef KEYWORD
 }
 

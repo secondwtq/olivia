@@ -25,7 +25,7 @@ std::shared_ptr<AST::NodeStatement> LOParser::parse_statement(std::shared_ptr<AS
         case TIf:
             return parse_if_statement(parent);
         case TWhile:
-            break;
+            return parseStatementWhile(parent);
         case TDo:
             break;
         case TFor:
@@ -471,6 +471,18 @@ std::shared_ptr<AST::NodeStatementIf> LOParser::parse_if_statement(std::shared_p
             ret->else_ = else_;
         }
     }
+    return ret;
+}
+
+std::shared_ptr<AST::NodeStatementWhile> LOParser::parseStatementWhile(std::shared_ptr<AST::Node> parent) {
+    expect(TWhile);
+    auto ret = std::make_shared<AST::NodeStatementWhile>(parent);
+    expect('(');
+    ret->cond = parse_expression(ret);
+    expect(')');
+    if (token == '{') {
+        ret->body = parse_block(ret);
+    } else { ret->body = parse_expression_statement(ret); }
     return ret;
 }
 

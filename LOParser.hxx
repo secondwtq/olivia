@@ -64,6 +64,7 @@ public:
     std::shared_ptr<AST::NodeStatementExpression> parse_expression_statement(std::shared_ptr<AST::Node> parent);
 
     std::shared_ptr<AST::NodeStatementIf> parse_if_statement(std::shared_ptr<AST::Node> parent);
+    std::shared_ptr<AST::NodeStatementWhile> parseStatementWhile(std::shared_ptr<AST::Node> parent);
 
     int token_precedence(LexerTokenType t) const;
 
