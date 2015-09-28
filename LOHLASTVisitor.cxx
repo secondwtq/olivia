@@ -64,8 +64,7 @@ void HLEmitterVisitor::visit(AST::NodeDeclarationFunction *node) {
 void HLEmitterVisitor::visit(AST::NodeStatementExpression *node) {
     // pop
     node->expression->accept(this);
-    auto instr = std::make_shared<HLIPop>();
-    builder()->currentBlock()->addInstruction(instr);
+    builder()->addPop();
 }
 
 void HLEmitterVisitor::visit(AST::NodeStatementVar *node) {
@@ -99,64 +98,53 @@ void HLEmitterVisitor::visit(AST::NodeBlock *node) {
 
 void HLEmitterVisitor::visit(AST::NodeConstantBoolean *node) {
     // push constant boolean <value>
-    auto instr = std::make_shared<HLIPushConstantArithmetic>();
-    instr->m_type = std::make_shared<OliveType>(TypeBoolean);
-    instr->bool_type = node->value;
-    builder()->currentBlock()->addInstruction(instr);
+    builder()->addPushConstantArithmeticDouble(node->value);
 }
 
 void HLEmitterVisitor::visit(AST::NodeConstantInteger *node) {
     // push constant int32 <value>
-    auto instr = std::make_shared<HLIPushConstantArithmetic>();
-    instr->m_type = std::make_shared<OliveType>(TypeInt32);
-    instr->int32_type = node->value;
-    builder()->currentBlock()->addInstruction(instr);
+    builder()->addPushConstantArithmeticInteger(node->value);
 }
 
 void HLEmitterVisitor::visit(AST::NodeConstantDouble *node) {
     // push constant double <value>
-    auto instr = std::make_shared<HLIPushConstantArithmetic>();
-    instr->m_type = std::make_shared<OliveType>(TypeDouble);
-    instr->double_type = node->value;
-    builder()->currentBlock()->addInstruction(instr);
+    builder()->addPushConstantArithmeticDouble(node->value);
 }
 
 void HLEmitterVisitor::visit(AST::NodeCallExpression *node) {
     //
     // push ? <function>
     node->callee->accept(this);
+    auto func_type = builder()->sstack->top()->type;
     //
     // push ? <arguments>
-    for (auto arg : node->arguments) {
-        arg->accept(this); }
+    for (size_t i = 0; i < node->arguments.size(); i++) {
+        node->arguments[i]->accept(this);
+
+        castTopValueIfNeeded(func_type->callArguments[i]);
+    }
 
     // call <#arguments>
-    auto instr = std::make_shared<HLICall>();
-    instr->numberOfArguments = node->arguments.size();
-    builder()->currentBlock()->addInstruction(instr);
+    builder()->addCall(node->arguments.size());
 }
 
 void HLEmitterVisitor::visit(AST::NodeStatementReturn *node) {
     node->expression->accept(this);
 
     // return <type>
-    auto instr = std::make_shared<HLIReturn>();
-    instr->m_type = builder()->currentSemanticBlock()->parentFunctionLocal()->returnType;
-    builder()->currentBlock()->addInstruction(instr);
+    auto return_type = builder()->currentSemanticBlock()->parentFunctionLocal()->returnType;
+    if (return_type->baseType() != TypeVoid) {
+        castTopValueIfNeeded(return_type); }
+    builder()->addReturn(return_type);
 }
 
 void HLEmitterVisitor::visit(AST::NodeIdentifier *node) {
     auto resolved = builder()->currentSemanticBlock()->resolveVariableNamed(node->name);
     if (resolved->isLocal()) {
-        auto instr = std::make_shared<HLIPushLocalVariableRef>();
-        instr->m_type = resolved->type;
-        instr->slotidx = std::static_pointer_cast<HLVariableInfoLocal>(resolved)->slotID;
-        builder()->currentBlock()->addInstruction(instr);
+        builder()->addPushLocalVariableRef(resolved->type,
+                std::static_pointer_cast<HLVariableInfoLocal>(resolved)->slotID);
     } else if (resolved->isConstant()) {
-        auto instr = std::make_shared<HLIPushConstantGlobal>();
-        instr->m_type = resolved->type;
-        instr->path = node->name;
-        builder()->currentBlock()->addInstruction(instr);
+        builder()->addPushConstantGlobal(resolved->type, node->name);
     } else {
         auto instr = std::make_shared<HLIPushGlobalVariableRef>();
         instr->m_type = resolved->type;
@@ -166,6 +154,7 @@ void HLEmitterVisitor::visit(AST::NodeIdentifier *node) {
 
 void HLEmitterVisitor::visit(AST::NodeStatementIf *node) {
     node->cond_->accept(this);
+    castTopValueIfNeeded(std::make_shared<OliveType>(TypeBoolean));
 
     std::shared_ptr<HLBlock> block_then = builder()->currentSemanticBlock()->appendSemanticBlock()->openBlock();
     std::shared_ptr<HLBlock> block_else = node->hasElse() ? builder()->currentSemanticBlock()->
@@ -193,11 +182,31 @@ void HLEmitterVisitor::visit(AST::NodeStatementWhile *node) {
     builder()->addBranchJump(block_cond);
     builder()->setCurrentBlock(block_cond);
     node->cond->accept(this);
+    castTopValueIfNeeded(std::make_shared<OliveType>(TypeBoolean));
     builder()->addBranchConditionBinary(block_body, block_cont);
     builder()->setCurrentBlock(block_body);
     node->body->accept(this);
     builder()->addBranchJump(block_cond);
     builder()->setCurrentBlock(block_cont);
+}
+
+void HLEmitterVisitor::castTopValueIfNeeded(std::shared_ptr<OliveType> type) {
+    auto current_type = builder()->sstack->top()->type;
+    if (!current_type->equalsEffectively(type)) {
+        builder()->addCast(current_type, type); }
+    assert(builder()->sstack->top()->type->equalsEffectively(type));
+}
+
+void HLEmitterVisitor::visit(AST::NodeParenthesisExpression *node) {
+    node->expression->accept(this); }
+
+// binary operators: + - * / % ^
+//  < > <= >=
+//  += -= *= /= %=
+//  & |
+void HLEmitterVisitor::visit(AST::NodeBinaryExpression *node) {
+    node->lhs->accept(this);
+    node->rhs->accept(this);
 }
 
 }

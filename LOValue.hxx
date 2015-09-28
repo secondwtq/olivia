@@ -73,6 +73,8 @@ public:
     bool callable() const {
         return m_callable; }
 
+    bool equalsEffectively(std::shared_ptr<OliveType> other);
+
     std::shared_ptr<OliveType> callReturnType;
     std::vector<std::shared_ptr<OliveType>> callArguments;
 

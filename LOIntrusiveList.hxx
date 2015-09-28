@@ -16,11 +16,12 @@
 namespace Olivia {
 namespace Base {
 
-template <typename T, typename pT>
+template <typename T, typename pT, typename constPT>
 class IntrusiveListNode {
 private:
 
     typedef pT PointerT;
+    typedef constPT ConstPointerT;
 
     // do we need to avoid cyclic-reference?
     T *node_prev = nullptr;
@@ -28,13 +29,55 @@ private:
 
     template <typename T_>
     friend class IntrusiveList;
+    template <typename T_>
+    friend class ilist_iterator_base;
 };
+
+// TODO: more serious iterator
+//  now it is only has support for 'for each' loops.
+template <typename IteratorPtrT>
+class ilist_iterator_base {
+public:
+    ilist_iterator_base(IteratorPtrT t) : target(t) { }
+    ilist_iterator_base& operator++() {
+        target = target->node_next;
+        return *this;
+    }
+    IteratorPtrT operator*() {
+        return target; }
+private:
+    IteratorPtrT target;
+
+    template <typename T>
+    friend class IntrusiveList;
+    template <typename T1, typename T2>
+    friend bool operator!=(const ilist_iterator_base<T1>& lhs,
+            const ilist_iterator_base<T2>& rhs);
+};
+
+template <typename T1, typename T2>
+inline bool operator!=(const ilist_iterator_base<T1>& lhs,
+        const ilist_iterator_base<T2>& rhs) {
+    return lhs.target != rhs.target; }
 
 template <typename T>
 class IntrusiveList {
 public:
 
     typedef typename T::PointerT PointerT;
+    typedef typename T::ConstPointerT ConstPointerT;
+
+    typedef ilist_iterator_base<PointerT> iterator;
+    typedef ilist_iterator_base<ConstPointerT> const_iterator;
+
+    iterator begin() {
+        return iterator(head()); }
+    iterator end() {
+        return iterator(nullptr); }
+    const_iterator begin() const {
+        return const_iterator(head()); }
+    const_iterator end() const {
+        return const_iterator(nullptr); }
 
     PointerT head() {
         return m_head; }
@@ -118,7 +161,7 @@ public:
         m_head = m_tail = nullptr;
         m_size = 0; }
     bool empty() const {
-        return !(head() == nullptr); }
+        return head() == nullptr; }
     size_t size() const {
         return m_size; }
 

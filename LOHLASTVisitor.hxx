@@ -25,10 +25,10 @@ public:
             : m_builder(builder) { }
 
     void visit(AST::NodePrefixUnaryExpression *node) override { }
-    void visit(AST::NodeParenthesisExpression* node) override { }
+    void visit(AST::NodeParenthesisExpression* node) override;
     void visit(AST::NodeIdentifier* node) override;
     void visit(AST::NodeMemberExpression* node) override { }
-    void visit(AST::NodeBinaryExpression* node) override { }
+    void visit(AST::NodeBinaryExpression* node) override;
     void visit(AST::NodeCallExpression* node) override;
     void visit(AST::NodeStatementExpression* node) override;
     void visit(AST::NodeStatementReturn* node) override;
@@ -53,6 +53,8 @@ public:
     void visit(AST::NodeConstantDouble *node) override;
     void visit(AST::NodeConstantInteger *node) override;
     void visit(AST::NodeConstantString *node) override { }
+
+    void castTopValueIfNeeded(std::shared_ptr<OliveType> type);
 
     std::shared_ptr<HLBlockBuilder> builder() {
         return m_builder; }

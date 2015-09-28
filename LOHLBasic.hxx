@@ -19,6 +19,8 @@
 
 #include "LOValue.hxx"
 
+#include "LOIntrusiveList.hxx"
+
 namespace Olivia {
 namespace HL {
 
@@ -35,12 +37,14 @@ enum HLInstrKind {
     HPop,
     HCallVoid,
     HCall,
+    HCast,
     HReturn,
     HBranchJump,
     HBranchConditionBinary
 };
 
-class HLIBase {
+class HLIBase : public Base::IntrusiveListNode<HLIBase,
+        std::shared_ptr<HLIBase>, std::shared_ptr<const HLIBase>> {
 public:
 
     virtual HLInstrKind kind() const = 0;
@@ -114,7 +118,7 @@ public:
 
 private:
     std::weak_ptr<HLSemanticBlock> m_semantic_block;
-    std::vector<std::shared_ptr<HLIBase>> m_instructions;
+    Base::IntrusiveList<HLIBase> m_instructions;
 };
 
 class HLFunction : public HLSemanticBlock {
@@ -338,6 +342,20 @@ public:
         return "call"; }
     std::string toString() const override {
         return instructionName() + " " + std::to_string(numberOfArguments); }
+};
+
+class HLICast : public HLIBase {
+public:
+    HLInstrKind kind() const override {
+        return HCast; }
+    std::string instructionName() const override {
+        return "cast"; }
+    std::string toString() const override {
+        return instructionName() + " " +
+                convertOliveTypeToString(*from) + " " + convertOliveTypeToString(*to);
+    }
+    std::shared_ptr<OliveType> from;
+    std::shared_ptr<OliveType> to;
 };
 
 class HLIReturn : public HLIBase {

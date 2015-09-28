@@ -87,4 +87,13 @@ const char *convertValueTypeToString(Olivia::LOValueType type) {
     }
 }
 
+bool OliveType::equalsEffectively(std::shared_ptr<OliveType> other) {
+    LOValueType t = baseType();
+    if (t == TypeInt8 || t == TypeInt32 || t == TypeUInt32 || t == TypeDouble ||
+            t == TypeBoolean || t == TypeString || t == TypeRawString) {
+        return t == other->baseType();
+    }
+    return false;
+}
+
 }
