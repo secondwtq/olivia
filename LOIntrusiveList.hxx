@@ -124,9 +124,9 @@ public:
     void insert(PointerT pos, PointerT ptr) {
         assert(pos && ptr);
         assert(!node_in_list(ptr) && node_in_list(pos));
-        pos->node_next = ptr;
         ptr->node_prev = recover_ptr(pos);
         ptr->node_next = node_next(pos);
+        pos->node_next = ptr;
 
         if (pos == tail()) {
             m_tail = ptr; }

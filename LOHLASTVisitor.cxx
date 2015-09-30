@@ -98,7 +98,7 @@ void HLEmitterVisitor::visit(AST::NodeBlock *node) {
 
 void HLEmitterVisitor::visit(AST::NodeConstantBoolean *node) {
     // push constant boolean <value>
-    builder()->addPushConstantArithmeticDouble(node->value);
+    builder()->addPushConstantArithmeticBoolean(node->value);
 }
 
 void HLEmitterVisitor::visit(AST::NodeConstantInteger *node) {
@@ -200,13 +200,80 @@ void HLEmitterVisitor::castTopValueIfNeeded(std::shared_ptr<OliveType> type) {
 void HLEmitterVisitor::visit(AST::NodeParenthesisExpression *node) {
     node->expression->accept(this); }
 
+bool isTypeArithmetic(const std::shared_ptr<OliveType> type) {
+    auto base = type->baseType();
+    switch (base) {
+        case TypeInt8:
+            return true;
+        case TypeInt32:
+            return true;
+        case TypeUInt32:
+            return true;
+        case TypeBoolean:
+            return true;
+        case TypeDouble:
+            return true;
+        default:
+            return false;
+    }
+}
+
 // binary operators: + - * / % ^
-//  < > <= >=
+//  = == < > <= >=
 //  += -= *= /= %=
 //  & |
+//  && ||
+
+std::shared_ptr<HLIBase> insertCast(std::shared_ptr<HLBlockBuilder> builder,
+        std::shared_ptr<OliveType> from, std::shared_ptr<OliveType> to,
+        std::shared_ptr<HLIBase> instr_pos, size_t stack_pos) {
+    auto ret = std::make_shared<HLICast>();
+    ret->from = from, ret->to = to;
+    builder->currentBlock()->insertInstruction(instr_pos, ret);
+    builder->sstack->queue[stack_pos] = HLSimulatorStackValue::createTemporary(to);
+    return ret;
+}
+
+void unifyBinaryExpressionType(std::shared_ptr<HLBlockBuilder> builder,
+        std::shared_ptr<HLIBase> lhs) {
+    auto typeRHS = builder->sstack->indexed(0)->type,
+            typeLHS = builder->sstack->indexed(1)->type;
+
+    auto dominateValueType = [&] (LOValueType t) {
+        if (typeLHS->baseType() == t || typeRHS->baseType() == t) {
+            if (typeLHS->baseType() == t) {
+                builder->addCast(typeRHS, typeLHS);
+            } else { insertCast(builder, typeLHS, typeRHS, lhs, 1); }
+        }
+        typeRHS = builder->sstack->indexed(0)->type,
+                typeLHS = builder->sstack->indexed(1)->type;
+    };
+
+    while (isTypeArithmetic(typeLHS) && isTypeArithmetic(typeRHS)) {
+        if (typeLHS->equalsEffectively(typeRHS)) { break; }
+        // TODO: refactor to be more descriptive
+        dominateValueType(TypeDouble);
+        dominateValueType(TypeUInt32);
+        dominateValueType(TypeInt32);
+        dominateValueType(TypeInt8);
+        dominateValueType(TypeBoolean);
+        break;
+    }
+}
+
 void HLEmitterVisitor::visit(AST::NodeBinaryExpression *node) {
     node->lhs->accept(this);
+    auto lhspos = builder()->currentBlock()->topInstruction();
     node->rhs->accept(this);
+
+    unifyBinaryExpressionType(builder(), lhspos);
+
+    auto toptype = builder()->sstack->top()->type;
+    switch (node->op) {
+        case '+':
+            builder()->addArithmeticBinaryAdd(toptype);
+            break;
+    }
 }
 
 }

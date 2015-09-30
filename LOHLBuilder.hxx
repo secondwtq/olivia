@@ -34,6 +34,7 @@ class HLIPop;
 class HLICallBase;
 class HLIReturn;
 class HLICast;
+class HLIArithmeticBinaryAdd;
 }
 }
 
@@ -51,7 +52,7 @@ public:
         return ret;
     }
     T top() { return queue.front(); }
-    T getIndexed(size_t idx) {
+    T indexed(size_t idx) {
         return queue.at(idx); }
     std::deque<T> queue;
 };
@@ -137,6 +138,8 @@ public:
 
     std::shared_ptr<HLIPop> addPop();
     std::shared_ptr<HLICast> addCast(std::shared_ptr<OliveType> from, std::shared_ptr<OliveType> to);
+
+    std::shared_ptr<HLIArithmeticBinaryAdd> addArithmeticBinaryAdd(std::shared_ptr<OliveType> type);
 
     std::shared_ptr<HLSimulatorStack<std::shared_ptr<HLSimulatorStackValue>>> sstack;
 

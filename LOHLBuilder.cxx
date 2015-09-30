@@ -92,7 +92,7 @@ std::shared_ptr<HLIPushConstantGlobal> HLBlockBuilder::addPushConstantGlobal(
 
 std::shared_ptr<HLICallBase> HLBlockBuilder::addCall(size_t numargs) {
     std::shared_ptr<HLICallBase> ret = nullptr;
-    auto func_type = sstack->getIndexed(numargs)->type;
+    auto func_type = sstack->indexed(numargs)->type;
     if (func_type->callReturnType->baseType() == TypeVoid) {
         ret = std::make_shared<HLICallVoid>();
     } else { ret = std::make_shared<HLICall>(); }
@@ -118,6 +118,16 @@ std::shared_ptr<HLICast> HLBlockBuilder::addCast(std::shared_ptr<OliveType> from
     sstack->pop();
     currentBlock()->addInstruction(ret);
     sstack->push(HLSimulatorStackValue::createTemporary(to));
+    return ret;
+}
+
+std::shared_ptr<HLIArithmeticBinaryAdd> HLBlockBuilder::addArithmeticBinaryAdd(std::shared_ptr<OliveType> type) {
+    auto ret = std::make_shared<HLIArithmeticBinaryAdd>();
+    ret->type = type;
+    sstack->pop();
+    sstack->pop();
+    currentBlock()->addInstruction(ret);
+    sstack->push(HLSimulatorStackValue::createTemporary(type));
     return ret;
 }
 

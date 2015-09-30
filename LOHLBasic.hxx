@@ -40,7 +40,15 @@ enum HLInstrKind {
     HCast,
     HReturn,
     HBranchJump,
-    HBranchConditionBinary
+    HBranchConditionBinary,
+
+    HArithmeticBinaryAdd,
+    HArithmeticBinaryMul,
+    HArithmeticBinaryDiv,
+    HArithmeticBinaryBitAnd,
+    HArithmeticBinaryBitOr,
+    HArithmeticBinaryAnd,
+    HArithmeticBinaryOr
 };
 
 class HLIBase : public Base::IntrusiveListNode<HLIBase,
@@ -113,6 +121,13 @@ public:
     void setSemanticBlock(std::shared_ptr<HLSemanticBlock> block) {
         m_semantic_block = block; }
     std::string toString() const;
+
+    std::shared_ptr<HLIBase> topInstruction() {
+        return m_instructions.tail(); }
+
+    void insertInstruction(std::shared_ptr<HLIBase> pos,
+            std::shared_ptr<HLIBase> ptr) {
+        m_instructions.insert(pos, ptr); }
 
     int64_t tmpID;
 
@@ -397,6 +412,86 @@ public:
 
     std::shared_ptr<HLBlock> dest_true;
     std::shared_ptr<HLBlock> dest_false;
+};
+
+class HLIArithmeticBinaryAdd : public HLIBase {
+public:
+    HLInstrKind kind() const override {
+        return HArithmeticBinaryAdd; }
+    std::string instructionName() const override {
+        return "add"; }
+    std::string toString() const override {
+        return instructionName() + " " + convertOliveTypeToString(*type); }
+
+    std::shared_ptr<OliveType> type;
+};
+
+class HLIArithmeticBinaryMul : public HLIBase {
+public:
+    HLInstrKind kind() const override {
+        return HArithmeticBinaryMul; }
+    std::string instructionName() const override {
+        return "mul"; }
+    std::string toString() const override {
+        return instructionName() + " " + convertOliveTypeToString(*type); }
+
+    std::shared_ptr<OliveType> type;
+};
+
+class HLIArithmeticBinaryDiv : public HLIBase {
+public:
+    HLInstrKind kind() const override {
+        return HArithmeticBinaryDiv; }
+    std::string instructionName() const override {
+        return "div"; }
+    std::string toString() const override {
+        return instructionName() + " " + convertOliveTypeToString(*type); }
+
+    std::shared_ptr<OliveType> type;
+};
+
+class HLIArithmeticBinaryBitAnd : public HLIBase {
+public:
+    HLInstrKind kind() const override {
+        return HArithmeticBinaryBitAnd; }
+    std::string instructionName() const override {
+        return "bitand"; }
+    std::string toString() const override {
+        return instructionName() + " " + convertOliveTypeToString(*type); }
+
+    std::shared_ptr<OliveType> type;
+};
+
+class HLIArithmeticBinaryBitOr : public HLIBase {
+public:
+    HLInstrKind kind() const override {
+        return HArithmeticBinaryBitOr; }
+    std::string instructionName() const override {
+        return "bitor"; }
+    std::string toString() const override {
+        return instructionName() + " " + convertOliveTypeToString(*type); }
+
+    std::shared_ptr<OliveType> type;
+};
+
+class HLIArithmeticBinaryAnd : public HLIBase {
+public:
+    HLInstrKind kind() const override {
+        return HArithmeticBinaryAnd; }
+    std::string instructionName() const override {
+        return "and"; }
+    std::string toString() const override {
+        return instructionName(); }
+};
+
+class HLIArithmeticBinaryOr : public HLIBase {
+public:
+    HLInstrKind kind() const override {
+        return HArithmeticBinaryOr; }
+    std::string instructionName() const override {
+        return "or"; }
+    std::string toString() const override {
+        return instructionName(); }
 };
 
 }
