@@ -131,5 +131,85 @@ std::shared_ptr<HLIArithmeticBinaryAdd> HLBlockBuilder::addArithmeticBinaryAdd(s
     return ret;
 }
 
+std::shared_ptr<HLIArithmeticBinaryMul> HLBlockBuilder::addArithmeticBinaryMul(std::shared_ptr<OliveType> type) {
+    auto ret = std::make_shared<HLIArithmeticBinaryMul>();
+    ret->type = type;
+    sstack->pop();
+    sstack->pop();
+    currentBlock()->addInstruction(ret);
+    sstack->push(HLSimulatorStackValue::createTemporary(type));
+    return ret;
+}
+
+std::shared_ptr<HLIArithmeticBinaryDiv> HLBlockBuilder::addArithmeticBinaryDiv(std::shared_ptr<OliveType> type) {
+    auto ret = std::make_shared<HLIArithmeticBinaryDiv>();
+    ret->type = type;
+    sstack->pop();
+    sstack->pop();
+    currentBlock()->addInstruction(ret);
+    sstack->push(HLSimulatorStackValue::createTemporary(type));
+    return ret;
+}
+
+std::shared_ptr<HLIArithmeticUnaryNegative> HLBlockBuilder::addArithmeticUnaryNegative(std::shared_ptr<OliveType> type) {
+    auto ret = std::make_shared<HLIArithmeticUnaryNegative>();
+    ret->type = type;
+    currentBlock()->addInstruction(ret);
+    return ret;
+}
+
+std::shared_ptr<HLIArithmeticBinaryBitAnd> HLBlockBuilder::addArithmeticBinaryBitAnd(std::shared_ptr<OliveType> type) {
+    auto ret = std::make_shared<HLIArithmeticBinaryBitAnd>();
+    ret->type = type;
+    sstack->pop();
+    sstack->pop();
+    currentBlock()->addInstruction(ret);
+    sstack->push(HLSimulatorStackValue::createTemporary(type));
+    return ret;
+}
+
+std::shared_ptr<HLIArithmeticBinaryBitOr> HLBlockBuilder::addArithmeticBinaryBitOr(std::shared_ptr<OliveType> type) {
+    auto ret = std::make_shared<HLIArithmeticBinaryBitOr>();
+    ret->type = type;
+    sstack->pop();
+    sstack->pop();
+    currentBlock()->addInstruction(ret);
+    sstack->push(HLSimulatorStackValue::createTemporary(type));
+    return ret;
+}
+
+std::shared_ptr<HLIArithmeticBinaryAnd> HLBlockBuilder::addArithmeticBinaryAnd() {
+    auto ret = std::make_shared<HLIArithmeticBinaryAnd>();
+    sstack->pop();
+    sstack->pop();
+    currentBlock()->addInstruction(ret);
+    sstack->push(HLSimulatorStackValue::createTemporary(
+            OliveType::basicType(TypeBoolean)));
+    return ret;
+}
+
+std::shared_ptr<HLIArithmeticBinaryOr> HLBlockBuilder::addArithmeticBinaryOr() {
+    auto ret = std::make_shared<HLIArithmeticBinaryOr>();
+    sstack->pop();
+    sstack->pop();
+    currentBlock()->addInstruction(ret);
+    sstack->push(HLSimulatorStackValue::createTemporary(
+            OliveType::basicType(TypeBoolean)));
+    return ret;
+}
+
+std::shared_ptr<HLIArithmeticBinaryCompare> HLBlockBuilder::addArithmeticBinaryCompare(
+        std::shared_ptr<OliveType> type, ArithmeticCompareType ctype) {
+    auto ret = std::make_shared<HLIArithmeticBinaryCompare>();
+    ret->type = type;
+    ret->ctype = ctype;
+    sstack->pop();
+    sstack->pop();
+    currentBlock()->addInstruction(ret);
+    sstack->push(HLSimulatorStackValue::createTemporary(
+            OliveType::basicType(TypeBoolean)));
+    return ret;
+}
+
 }
 }

@@ -141,5 +141,16 @@ std::string HLScript::toString() const {
     return ret;
 }
 
+const char *convertCompareTypeToString(ArithmeticCompareType t) {
+    switch (t) {
+        case CEqual: return "equal";
+        case CNotEqual: return "notequal";
+        case CGreater: return "greater";
+        case CLess: return "less";
+        case CGreaterEqual: return "greaterequal";
+        case CLessEqual: return "lessequal";
+    }
+}
+
 }
 }

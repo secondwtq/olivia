@@ -200,6 +200,31 @@ void HLEmitterVisitor::castTopValueIfNeeded(std::shared_ptr<OliveType> type) {
 void HLEmitterVisitor::visit(AST::NodeParenthesisExpression *node) {
     node->expression->accept(this); }
 
+enum BinaryExpressionTypeStrategy {
+    SNone,
+    SCommonPromoteUnify,
+    SConvertToInteger,
+    SConvertToBoolean
+};
+
+BinaryExpressionTypeStrategy getBinaryStrategy(LexerTokenType op) {
+    switch (op) {
+        case '+': case '-':
+        case '*': case '/':
+        case TEqual: case TNotEqual:
+        case '<': case '>': case TLessEqual: case TGreaterEqual:
+            return SCommonPromoteUnify;
+        case '|':
+        case '&':
+            return SConvertToInteger;
+        case TLogicalAnd:
+        case TLogicalOr:
+            return SConvertToBoolean;
+        default:
+            return SNone;
+    }
+}
+
 bool isTypeArithmetic(const std::shared_ptr<OliveType> type) {
     auto base = type->baseType();
     switch (base) {
@@ -212,6 +237,22 @@ bool isTypeArithmetic(const std::shared_ptr<OliveType> type) {
         case TypeBoolean:
             return true;
         case TypeDouble:
+            return true;
+        default:
+            return false;
+    }
+}
+
+bool isTypeInteger(const std::shared_ptr<OliveType> type) {
+    auto base = type->baseType();
+    switch (base) {
+        case TypeInt8:
+            return true;
+        case TypeInt32:
+            return true;
+        case TypeUInt32:
+            return true;
+        case TypeBoolean:
             return true;
         default:
             return false;
@@ -262,17 +303,57 @@ void unifyBinaryExpressionType(std::shared_ptr<HLBlockBuilder> builder,
 }
 
 void HLEmitterVisitor::visit(AST::NodeBinaryExpression *node) {
+    auto strategy = getBinaryStrategy(node->op);
+
     node->lhs->accept(this);
-    auto lhspos = builder()->currentBlock()->topInstruction();
-    node->rhs->accept(this);
-
-    unifyBinaryExpressionType(builder(), lhspos);
-
     auto toptype = builder()->sstack->top()->type;
+    if (strategy == SConvertToBoolean && toptype->baseType() != TypeBoolean) {
+        builder()->addCast(toptype, OliveType::basicType(TypeBoolean)); }
+    auto lhspos = builder()->currentBlock()->topInstruction();
+
+    node->rhs->accept(this);
+    toptype = builder()->sstack->top()->type;
+    if (strategy == SConvertToBoolean && toptype->baseType() != TypeBoolean) {
+        builder()->addCast(toptype, OliveType::basicType(TypeBoolean)); }
+
+    if (strategy == SCommonPromoteUnify) {
+        unifyBinaryExpressionType(builder(), lhspos); }
+
+    toptype = builder()->sstack->top()->type;
     switch (node->op) {
         case '+':
             builder()->addArithmeticBinaryAdd(toptype);
             break;
+        case '-':
+            builder()->addArithmeticUnaryNegative(toptype);
+            builder()->addArithmeticBinaryAdd(toptype);
+            break;
+        case '*':
+            builder()->addArithmeticBinaryMul(toptype);
+            break;
+        case '/':
+            builder()->addArithmeticBinaryDiv(toptype);
+            break;
+        case '&':
+            builder()->addArithmeticBinaryBitAnd(toptype);
+            break;
+        case '|':
+            builder()->addArithmeticBinaryBitOr(toptype);
+            break;
+        case TLogicalAnd:
+            builder()->addArithmeticBinaryAnd();
+            break;
+        case TLogicalOr:
+            builder()->addArithmeticBinaryOr();
+            break;
+        case TEqual: builder()->addArithmeticBinaryCompare(toptype, CEqual); break;
+        case TNotEqual: builder()->addArithmeticBinaryCompare(toptype, CNotEqual); break;
+        case TGreaterEqual: builder()->addArithmeticBinaryCompare(toptype, CGreaterEqual); break;
+        case TLessEqual: builder()->addArithmeticBinaryCompare(toptype, CLessEqual); break;
+        case '<': builder()->addArithmeticBinaryCompare(toptype, CLess); break;
+        case '>': builder()->addArithmeticBinaryCompare(toptype, CGreater); break;
+        default:
+            return;
     }
 }
 

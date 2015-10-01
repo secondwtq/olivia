@@ -93,7 +93,32 @@ LexerTokenType LOLexer::lex() {
             case '\'':
                 break;
             case '!':
+                advance();
+                switch(curchr) {
+                    case '=':
+                        LEXRET(TNotEqual);
+                    default:
+                        LEXRET('!');
+                }
                 break;
+            case '&':
+                advance();
+                switch (curchr) {
+                    case '&': LEXRET(TLogicalAnd);
+                    default: LEXRET('&');
+                }
+            case '<':
+                advance();
+                switch (curchr) {
+                    case '=': LEXRET(TLessEqual);
+                    default: LEXRET('<');
+                }
+            case '>':
+                advance();
+                switch (curchr) {
+                    case '|': LEXRET(TGreaterEqual);
+                    default: LEXRET('>');
+                }
             case '=':
                 advance();
                 switch(curchr) {

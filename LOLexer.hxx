@@ -78,7 +78,13 @@ enum LexerKeyTokenType {
     TEqual = -42,
     TNotEqual = -43,
 
-    TRawString = -44
+    TRawString = -44,
+
+    TLogicalAnd = -45,
+    TLogicalOr = -46,
+
+    TGreaterEqual = -47,
+    TLessEqual = -48
 };
 
 typedef int16_t LexerTokenType;

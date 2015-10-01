@@ -78,12 +78,24 @@ public:
     std::shared_ptr<OliveType> callReturnType;
     std::vector<std::shared_ptr<OliveType>> callArguments;
 
+    static std::shared_ptr<OliveType> basicType(LOValueType type) {
+        switch (type) {
+            case TypeVoid: return typeVoid;
+            case TypeBoolean: return typeBoolean;
+            default:
+                return nullptr;
+        }
+    }
+
 private:
     bool m_callable = false;
 
     LOValueType m_base_type;
     std::shared_ptr<LOClass> m_concrete;
     std::string m_concrete_tmp;
+
+    static std::shared_ptr<OliveType> typeVoid;
+    static std::shared_ptr<OliveType> typeBoolean;
 };
 
 namespace AST {

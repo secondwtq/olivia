@@ -48,7 +48,9 @@ enum HLInstrKind {
     HArithmeticBinaryBitAnd,
     HArithmeticBinaryBitOr,
     HArithmeticBinaryAnd,
-    HArithmeticBinaryOr
+    HArithmeticBinaryOr,
+    HArithmeticUnaryNegative,
+    HArithmeticBinaryCompare
 };
 
 class HLIBase : public Base::IntrusiveListNode<HLIBase,
@@ -492,6 +494,31 @@ public:
         return "or"; }
     std::string toString() const override {
         return instructionName(); }
+};
+
+class HLIArithmeticUnaryNegative : public HLIBase {
+public:
+    HLInstrKind kind() const override { return HArithmeticUnaryNegative; }
+    std::string instructionName() const override { return "neg"; }
+    std::string toString() const override { return instructionName() + ' ' + convertOliveTypeToString(*type); }
+    std::shared_ptr<OliveType> type;
+};
+
+enum ArithmeticCompareType {
+    CEqual, CNotEqual, CGreater, CLess,
+    CGreaterEqual, CLessEqual
+};
+
+const char * convertCompareTypeToString(ArithmeticCompareType t);
+
+class HLIArithmeticBinaryCompare : public HLIBase {
+public:
+    HLInstrKind kind() const override { return HArithmeticBinaryCompare; }
+    std::string instructionName() const override { return "compare"; }
+    std::string toString() const override { return instructionName() + ' ' + convertOliveTypeToString(*type) +
+                ' ' + convertCompareTypeToString(ctype); }
+    std::shared_ptr<OliveType> type;
+    ArithmeticCompareType ctype;
 };
 
 }

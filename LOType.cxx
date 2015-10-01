@@ -20,6 +20,9 @@
 
 namespace Olivia {
 
+std::shared_ptr<OliveType> OliveType::typeVoid = std::make_shared<OliveType>(TypeVoid);
+std::shared_ptr<OliveType> OliveType::typeBoolean = std::make_shared<OliveType>(TypeBoolean);
+
 std::shared_ptr<OliveType> convertTypeSpecNodeToOliveType(
         const AST::NodeTypeSpec& type, LOScript &script) {
     std::shared_ptr<OliveType> ret = std::make_shared<OliveType>();

@@ -13,6 +13,7 @@
 #include <deque>
 #include <memory>
 #include "LOValue.hxx"
+#include "LOHLBasic.hxx"
 
 namespace Olivia {
 class OliveType;
@@ -35,6 +36,16 @@ class HLICallBase;
 class HLIReturn;
 class HLICast;
 class HLIArithmeticBinaryAdd;
+class HLIArithmeticBinaryMul;
+class HLIArithmeticBinaryDiv;
+class HLIArithmeticUnaryNegative;
+class HLIArithmeticBinaryBitAnd;
+class HLIArithmeticBinaryBitOr;
+class HLIArithmeticBinaryAnd;
+class HLIArithmeticBinaryOr;
+class HLIArithmeticBinaryCompare;
+
+enum ArithmeticCompareType;
 }
 }
 
@@ -140,6 +151,15 @@ public:
     std::shared_ptr<HLICast> addCast(std::shared_ptr<OliveType> from, std::shared_ptr<OliveType> to);
 
     std::shared_ptr<HLIArithmeticBinaryAdd> addArithmeticBinaryAdd(std::shared_ptr<OliveType> type);
+    std::shared_ptr<HLIArithmeticBinaryMul> addArithmeticBinaryMul(std::shared_ptr<OliveType> type);
+    std::shared_ptr<HLIArithmeticBinaryDiv> addArithmeticBinaryDiv(std::shared_ptr<OliveType> type);
+    std::shared_ptr<HLIArithmeticBinaryBitAnd> addArithmeticBinaryBitAnd(std::shared_ptr<OliveType> type);
+    std::shared_ptr<HLIArithmeticBinaryBitOr> addArithmeticBinaryBitOr(std::shared_ptr<OliveType> type);
+    std::shared_ptr<HLIArithmeticBinaryAnd> addArithmeticBinaryAnd();
+    std::shared_ptr<HLIArithmeticBinaryOr> addArithmeticBinaryOr();
+    std::shared_ptr<HLIArithmeticUnaryNegative> addArithmeticUnaryNegative(std::shared_ptr<OliveType> type);
+    std::shared_ptr<HLIArithmeticBinaryCompare> addArithmeticBinaryCompare(
+            std::shared_ptr<OliveType> type, ArithmeticCompareType ctype);
 
     std::shared_ptr<HLSimulatorStack<std::shared_ptr<HLSimulatorStackValue>>> sstack;
 
